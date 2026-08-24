@@ -76,7 +76,7 @@ export const ExpertisesSection: React.FC = () => {
           pin: true,
           scrub: 0.8,
           start: 'top top',
-          end: '+=4800',
+          end: '+=4200',
           invalidateOnRefresh: true,
         },
       });
@@ -136,19 +136,19 @@ export const ExpertisesSection: React.FC = () => {
     <section
       ref={sectionRef}
       id="method"
-      className="relative w-full min-h-screen lg:h-screen bg-[#F9F1F0] text-[#2D5D4B] pt-24 pb-12 lg:py-16 px-4 md:px-12 overflow-hidden flex items-center justify-center transition-colors duration-700 select-none"
+      className="relative w-full h-screen bg-[#F9F1F0] text-[#2D5D4B] pt-28 pb-12 lg:py-16 px-4 md:px-12 overflow-hidden flex items-center justify-center transition-colors duration-700 select-none"
     >
       <div className="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center z-10 h-full">
         
         {/* Left Column: Headlines & Sticker */}
-        <div ref={leftColRef} className="lg:col-span-4 space-y-4 lg:space-y-6 relative min-h-[160px] lg:min-h-0">
+        <div ref={leftColRef} className="lg:col-span-4 space-y-4 lg:space-y-6 relative min-h-[140px] lg:min-h-0 pt-4 lg:pt-0">
           
           {/* Initial Headline */}
           <div ref={expertiseTitleRef} className="space-y-2 lg:space-y-4">
             <span className="text-[11px] sm:text-xs font-sans font-bold text-[#C84B31] uppercase tracking-widest block">
               PING CORE ENGINE
             </span>
-            <h2 className="font-foudre font-black text-[10vw] sm:text-[8vw] lg:text-[5.5vw] leading-[0.8] text-[#C84B31] uppercase tracking-tighter block">
+            <h2 className="font-foudre font-black text-[8vw] sm:text-[7vw] lg:text-[5.5vw] leading-[0.82] text-[#C84B31] uppercase tracking-tighter block">
               BUILT FOR <br className="hidden sm:block" />
               SQUAD DECISIONS: <br className="hidden sm:block" />
               ZERO AGENDAS.
@@ -160,7 +160,7 @@ export const ExpertisesSection: React.FC = () => {
             <span className="text-[11px] sm:text-xs font-sans font-bold text-[#F9F1F0] uppercase tracking-widest block">
               SPONTANEOUS METHOD
             </span>
-            <h2 className="font-foudre font-black text-[10vw] sm:text-[8vw] lg:text-[5.5vw] leading-[0.8] text-[#F9F1F0] uppercase tracking-tighter block">
+            <h2 className="font-foudre font-black text-[8vw] sm:text-[7vw] lg:text-[5.5vw] leading-[0.82] text-[#F9F1F0] uppercase tracking-tighter block">
               WE PREFER <br className="hidden sm:block" />
               SPONTANEOUS <br className="hidden sm:block" />
               PLANS. ALWAYS.
@@ -180,7 +180,7 @@ export const ExpertisesSection: React.FC = () => {
         </div>
 
         {/* Center Column: Card Toss Stack Deck */}
-        <div ref={cardDeckRef} className="lg:col-span-4 h-[360px] sm:h-[500px] relative flex justify-center items-center my-4 lg:my-0">
+        <div ref={cardDeckRef} className="lg:col-span-4 h-[360px] sm:h-[500px] relative flex justify-center items-center my-2 lg:my-0">
           
           {/* Card 01 */}
           <div
@@ -323,13 +323,13 @@ export const ExpertisesSection: React.FC = () => {
         </div>
 
         {/* Right Column: English Process Writeup */}
-        <div className="lg:col-span-4 flex flex-col justify-between min-h-[300px] lg:h-[480px] py-2 space-y-4 lg:space-y-0">
+        <div className="lg:col-span-4 hidden lg:flex flex-col justify-between h-[480px] py-2">
           
           <div className="space-y-3">
-            <h3 className="font-sans font-bold text-xs sm:text-base text-[#C84B31] uppercase tracking-wide">
+            <h3 className="font-sans font-bold text-base text-[#C84B31] uppercase tracking-wide">
               At Ping, every hangout follows a seamless 1-click consensus flow.
             </h3>
-            <p className="font-sans text-xs sm:text-sm text-[#2D5D4B]/90 leading-relaxed font-medium">
+            <p className="font-sans text-sm text-[#2D5D4B]/90 leading-relaxed font-medium">
               Great nights out shouldn't take 500 messages to organize. Drop one link, let your squad vote live on venues and time slots, and lock it in automatically.
             </p>
           </div>
@@ -341,7 +341,7 @@ export const ExpertisesSection: React.FC = () => {
               className="bg-[#C84B31] text-white p-4 rounded-[28px] shadow-2xl w-full border border-white/20"
             >
               <div className="flex flex-row gap-4 items-center">
-                <div className="relative w-24 h-28 sm:w-28 sm:h-32 rounded-[18px] overflow-hidden shrink-0">
+                <div className="relative w-28 h-32 rounded-[18px] overflow-hidden shrink-0">
                   <img
                     src="/pics/tan-tony-Xek1XGQi-Ps-unsplash.jpg"
                     alt="Ping Spotlight"
@@ -354,7 +354,7 @@ export const ExpertisesSection: React.FC = () => {
                     <span className="text-[10px] font-sans text-[#F9F1F0] uppercase font-bold block">
                       SPOTLIGHT VIBE
                     </span>
-                    <h4 className="font-foudre font-black text-xl sm:text-2xl text-white uppercase leading-[0.8] my-0.5">
+                    <h4 className="font-foudre font-black text-2xl text-white uppercase leading-[0.8] my-0.5">
                       OVERSTORY ROOFTOP
                     </h4>
                   </div>

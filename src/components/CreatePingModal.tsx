@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Check } from 'lucide-react';
 import { createPingApi } from '../lib/api';
@@ -10,10 +11,10 @@ interface CreatePingModalProps {
 }
 
 const TAG_PRESETS = [
-  { label: '🍹 Drinks & Sunset', color: 'bg-[#FF4D8D]' },
-  { label: '🌮 Late Night Eats', color: 'bg-[#00E676]' },
-  { label: '🕹️ Arcade & Gaming', color: 'bg-[#FF6B4A]' },
-  { label: '☕ Weekend Brunch', color: 'bg-[#181E1B]' },
+  { label: '🍹 Drinks & Sunset', color: 'bg-[#C84B31]' },
+  { label: '🌮 Late Night Eats', color: 'bg-[#2D5D4B]' },
+  { label: '🕹️ Arcade & Gaming', color: 'bg-[#E89A3C]' },
+  { label: '☕ Weekend Brunch', color: 'bg-[#4A154B]' },
 ];
 
 export const CreatePingModal: React.FC<CreatePingModalProps> = ({
@@ -24,6 +25,8 @@ export const CreatePingModal: React.FC<CreatePingModalProps> = ({
   const [title, setTitle] = useState('');
   const [selectedTag, setSelectedTag] = useState(TAG_PRESETS[0].label);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,120 +45,118 @@ export const CreatePingModal: React.FC<CreatePingModalProps> = ({
     }, 1200);
   };
 
-  return (
+  return ReactDOM.createPortal(
     <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 select-none pointer-events-auto">
+        
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/80 backdrop-blur-md"
+        />
+
+        {/* Modal Container */}
+        <motion.div
+          initial={{ scale: 0.9, y: 30, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.9, y: 30, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+          className="relative w-full max-w-lg bg-[#F9F1F0] text-[#2D5D4B] p-6 sm:p-8 rounded-[36px] border-4 border-[#C84B31]/40 shadow-2xl z-10 space-y-6"
+        >
+          {/* Close Button */}
+          <button
             onClick={onClose}
-            className="absolute inset-0 bg-[#0F3822]/80 backdrop-blur-sm"
-          />
-
-          {/* Modal Container */}
-          <motion.div
-            initial={{ scale: 0.9, y: 30, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 30, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className="relative w-full max-w-lg bg-[#F4F1EA] p-6 sm:p-8 rounded-3xl border-4 border-[#0F3822] shadow-brutal-lg z-10"
+            className="absolute top-5 right-5 p-2 bg-white/80 rounded-full border border-black/10 hover:bg-[#C84B31] hover:text-white transition-colors cursor-pointer"
           >
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="absolute top-5 right-5 p-2 bg-white rounded-xl border-2 border-black shadow-brutal hover:bg-neutral-100 cursor-pointer"
-            >
-              <X className="w-5 h-5 text-[#0F3822]" />
-            </button>
+            <X className="w-5 h-5 stroke-[2.5]" />
+          </button>
 
-            {isSuccess ? (
-              <div className="py-12 text-center space-y-4">
-                <div className="w-16 h-16 bg-[#00E676] rounded-full border-3 border-black flex items-center justify-center mx-auto shadow-brutal animate-bounce">
-                  <Check className="w-8 h-8 text-[#0F3822] stroke-[3]" />
-                </div>
-                <h3 className="font-display font-black text-3xl text-[#0F3822] uppercase">
-                  PING DROPPED! 🚀
+          {isSuccess ? (
+            <div className="py-12 text-center space-y-4">
+              <div className="w-16 h-16 bg-[#2D5D4B] text-white rounded-full border-2 border-white flex items-center justify-center mx-auto shadow-2xl animate-bounce">
+                <Check className="w-8 h-8 stroke-[3]" />
+              </div>
+              <h3 className="font-foudre font-black text-4xl text-[#C84B31] uppercase">
+                PING DROPPED! 🚀
+              </h3>
+              <p className="text-sm font-sans font-bold text-[#2D5D4B]">
+                Broadcasting live 20-min voting arena to your squad...
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              <div>
+                <span className="px-3.5 py-1 bg-[#C84B31] text-white font-sans font-black text-[10px] uppercase rounded-full inline-block mb-2 shadow-sm">
+                  START A NEW PING
+                </span>
+                <h3 className="font-foudre font-black text-3xl sm:text-4xl uppercase tracking-tight text-[#C84B31]">
+                  WHAT'S THE VIBE TONIGHT?
                 </h3>
-                <p className="text-sm font-sans font-bold text-[#0F3822]/80">
-                  Broadcasting live websocket room to your group chat...
+                <p className="text-xs font-sans text-[#2D5D4B]/80 font-medium">
+                  Max 5 venues • 20 mins room timer • 5 votes/day per person limit.
                 </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                
-                <div>
-                  <span className="px-3 py-1 bg-[#FF4D8D] text-white font-heading font-black text-xs uppercase rounded-full border border-black inline-block mb-2">
-                    START A NEW PING
-                  </span>
-                  <h3 className="font-display font-black text-3xl uppercase tracking-tight text-[#0F3822]">
-                    WHAT'S THE VIBE TONIGHT?
-                  </h3>
-                  <p className="text-xs font-sans text-[#0F3822]/70">
-                    No agendas or long threads. Name it, pick a tag, and send the link.
-                  </p>
+
+              {/* Input: Plan Title */}
+              <div>
+                <label className="block text-xs font-sans font-extrabold uppercase tracking-wider text-[#2D5D4B] mb-2">
+                  Ping Topic / Plan Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Tacos & Mezcal run at 8pm"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-4 py-3 bg-white text-[#2D5D4B] font-sans font-bold border-2 border-[#2D5D4B]/30 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#C84B31]"
+                />
+              </div>
+
+              {/* Tag Selection */}
+              <div>
+                <label className="block text-xs font-sans font-extrabold uppercase tracking-wider text-[#2D5D4B] mb-2">
+                  Select Vibe Tag
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_PRESETS.map((tag) => (
+                    <button
+                      key={tag.label}
+                      type="button"
+                      onClick={() => setSelectedTag(tag.label)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-sans font-extrabold border-2 border-transparent transition-all cursor-pointer ${
+                        selectedTag === tag.label
+                          ? `${tag.color} text-white shadow-md scale-105 border-white`
+                          : 'bg-white text-[#2D5D4B] hover:bg-neutral-100'
+                      }`}
+                    >
+                      {tag.label}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Input: Plan Title */}
-                <div>
-                  <label className="block text-xs font-heading font-extrabold uppercase text-[#0F3822] mb-2">
-                    Ping Topic / Plan Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Tacos & Mezcal run at 8pm"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-3 bg-white text-[#0F3822] font-sans font-bold border-3 border-[#0F3822] rounded-2xl shadow-brutal focus:outline-none focus:ring-2 focus:ring-[#00E676]"
-                  />
-                </div>
+              {/* CTA Button */}
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full py-4 bg-[#C84B31] text-white font-foudre font-black text-xl rounded-full shadow-2xl hover:bg-[#C84B31]/90 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wide border-2 border-white"
+              >
+                <Zap className="w-5 h-5 fill-white" />
+                Launch 20-Min Voting Arena
+              </motion.button>
 
-                {/* Tag Selection */}
-                <div>
-                  <label className="block text-xs font-heading font-extrabold uppercase text-[#0F3822] mb-2">
-                    Select Vibe Tag
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {TAG_PRESETS.map((tag) => (
-                      <button
-                        key={tag.label}
-                        type="button"
-                        onClick={() => setSelectedTag(tag.label)}
-                        className={`px-3 py-2 rounded-xl text-xs font-heading font-extrabold border-2 border-black transition-transform cursor-pointer ${
-                          selectedTag === tag.label
-                            ? `${tag.color} text-white shadow-brutal scale-105`
-                            : 'bg-white text-[#0F3822] hover:bg-neutral-100'
-                        }`}
-                      >
-                        {tag.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            </form>
+          )}
 
-                {/* CTA Button */}
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                  className="w-full py-4 bg-[#00E676] text-[#0F3822] font-display font-black text-lg border-3 border-[#0F3822] rounded-2xl shadow-brutal hover:bg-[#00E676]/90 cursor-pointer flex items-center justify-center gap-2 uppercase"
-                >
-                  <Zap className="w-5 h-5 fill-[#0F3822]" />
-                  Launch Ping & Share
-                </motion.button>
+        </motion.div>
 
-              </form>
-            )}
-
-          </motion.div>
-
-        </div>
-      )}
-    </AnimatePresence>
+      </div>
+    </AnimatePresence>,
+    document.body
   );
 };

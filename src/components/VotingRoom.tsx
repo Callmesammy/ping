@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { MapPin, ThumbsUp, ThumbsDown, Clock, Users, Share2, Flame, Lock, Radio, Trophy, Sparkles, Check, ArrowRight, MessageSquare } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { MapPin, ThumbsUp, ThumbsDown, Clock, Users, Share2, Flame, Lock, Radio, Trophy, Check, MessageSquare, PartyPopper, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { socket } from '../lib/socket';
 import { fetchPing, voteVenueApi, lockPingApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -73,6 +74,36 @@ const INITIAL_VENUES: VenueOption[] = [
     tag: 'VIBES',
     price: '$',
   },
+  {
+    id: 'v4',
+    name: 'Speakeasy Jazz & Bourbon',
+    category: 'Live Music & Vintage Spirits',
+    address: '12 Velvet Alley',
+    votes: 2,
+    upvotes: 2,
+    downvotes: 1,
+    votedBy: ['@nora', '@ben'],
+    upvotedBy: ['@nora', '@ben'],
+    downvotedBy: [],
+    image: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
+    tag: 'QUEUED',
+    price: '$$$',
+  },
+  {
+    id: 'v5',
+    name: 'Craft Beer & Woodfired Pizza',
+    category: 'IPAs, Sourdough Crust & Garden',
+    address: '77 Brewery Row',
+    votes: 1,
+    upvotes: 1,
+    downvotes: 0,
+    votedBy: ['@kai'],
+    upvotedBy: ['@kai'],
+    downvotedBy: [],
+    image: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
+    tag: 'QUEUED',
+    price: '$$',
+  },
 ];
 
 const TIME_SLOTS = [
@@ -80,6 +111,9 @@ const TIME_SLOTS = [
   { id: 't2', time: '8:15 PM', votes: 2, isSelected: false },
   { id: 't3', time: '9:00 PM (Late)', votes: 1, isSelected: false },
 ];
+
+const MAX_DAILY_VOTES = 5;
+const ROOM_DURATION_SECONDS = 1200; // 20 Minutes
 
 interface VotingRoomProps {
   currentPingTitle?: string;
@@ -99,7 +133,51 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
   const [isLocked, setIsLocked] = useState(false);
   const [isConnected, setIsConnected] = useState(socket.connected);
 
+  // 20-Min Countdown Timer State
+  const [timeLeft, setTimeLeft] = useState(ROOM_DURATION_SECONDS);
+  const [isExpired, setIsExpired] = useState(false);
+
+  // Daily Votes Counter State (Max 5 per day)
+  const [usedDailyVotes, setUsedDailyVotes] = useState(1);
+  const [showQueuePool, setShowQueuePool] = useState(false);
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
+
+  // 20-Min Live Ticking Timer Effect
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      setIsExpired(true);
+      setIsLocked(true);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsExpired(true);
+          setIsLocked(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  // Load Daily Vote Counter for active user handle
+  useEffect(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const key = `ping_daily_votes_${userName}_${todayStr}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      setUsedDailyVotes(parseInt(stored, 10));
+    } else {
+      setUsedDailyVotes(1); // 1 initial vote cast
+    }
+  }, [userName]);
 
   // Fetch initial ping data & setup WebSockets
   useEffect(() => {
@@ -111,7 +189,7 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
     const onVoteUpdated = (data: any) => {
       if (data.pingId === currentPingId && data.venues) {
         setVenues(
-          data.venues.map((v: any) => ({
+          data.venues.slice(0, 5).map((v: any) => ({
             id: v.id,
             name: v.name,
             category: v.category,
@@ -142,7 +220,7 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
     fetchPing(currentPingId).then((data) => {
       if (data && data.venues) {
         setVenues(
-          data.venues.map((v: any) => ({
+          data.venues.slice(0, 5).map((v: any) => ({
             id: v.id,
             name: v.name,
             category: v.category,
@@ -171,52 +249,64 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
   }, [currentPingId]);
 
   const handleVote = async (venueId: string, type: 'up' | 'down') => {
-    if (isLocked) return;
+    if (isLocked || isExpired) return;
+
+    // Check Max 5 Daily Votes Cap
+    if (usedDailyVotes >= MAX_DAILY_VOTES) {
+      setToastMessage('⚠️ Daily limit reached! You have used all 5 votes for today.');
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+
+    // Once voted, vote is locked in permanently
+    const alreadyUp = userUpvotedIds.includes(venueId);
+    const alreadyDown = userDownvotedIds.includes(venueId);
+    if (alreadyUp || alreadyDown) return;
+
+    // Increment Daily Votes
+    const newCount = usedDailyVotes + 1;
+    setUsedDailyVotes(newCount);
+    const todayStr = new Date().toISOString().split('T')[0];
+    localStorage.setItem(`ping_daily_votes_${userName}_${todayStr}`, newCount.toString());
+
+    // Trigger Congratulatory Confetti Blast
+    confetti({
+      particleCount: 140,
+      spread: 90,
+      origin: { y: 0.6 },
+      colors: ['#C84B31', '#FFD600', '#2D5D4B', '#F9F1F0', '#4A154B'],
+    });
+
+    const msg = type === 'up' ? `🎉 YES VOTE LOCKED IN! (${MAX_DAILY_VOTES - newCount} votes left today)` : `🔒 NO VOTE LOCKED IN! (${MAX_DAILY_VOTES - newCount} votes left today)`;
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
 
     if (type === 'up') {
-      const isUpvoted = userUpvotedIds.includes(venueId);
-      if (isUpvoted) {
-        setUserUpvotedIds((prev) => prev.filter((id) => id !== venueId));
-        setVenues((prev) =>
-          prev.map((v) => (v.id === venueId ? { ...v, upvotes: Math.max(0, v.upvotes - 1) } : v))
-        );
-      } else {
-        setUserUpvotedIds((prev) => [...prev, venueId]);
-        setUserDownvotedIds((prev) => prev.filter((id) => id !== venueId));
-        setVenues((prev) =>
-          prev.map((v) =>
-            v.id === venueId
-              ? {
-                  ...v,
-                  upvotes: v.upvotes + 1,
-                  downvotes: userDownvotedIds.includes(venueId) ? Math.max(0, v.downvotes - 1) : v.downvotes,
-                }
-              : v
-          )
-        );
-      }
+      setUserUpvotedIds((prev) => [...prev, venueId]);
+      setVenues((prev) =>
+        prev.map((v) =>
+          v.id === venueId
+            ? {
+                ...v,
+                upvotes: v.upvotes + 1,
+                votedBy: Array.from(new Set([...(v.votedBy || []), userName])),
+              }
+            : v
+        )
+      );
     } else {
-      const isDownvoted = userDownvotedIds.includes(venueId);
-      if (isDownvoted) {
-        setUserDownvotedIds((prev) => prev.filter((id) => id !== venueId));
-        setVenues((prev) =>
-          prev.map((v) => (v.id === venueId ? { ...v, downvotes: Math.max(0, v.downvotes - 1) } : v))
-        );
-      } else {
-        setUserDownvotedIds((prev) => [...prev, venueId]);
-        setUserUpvotedIds((prev) => prev.filter((id) => id !== venueId));
-        setVenues((prev) =>
-          prev.map((v) =>
-            v.id === venueId
-              ? {
-                  ...v,
-                  downvotes: v.downvotes + 1,
-                  upvotes: userUpvotedIds.includes(venueId) ? Math.max(0, v.upvotes - 1) : v.upvotes,
-                }
-              : v
-          )
-        );
-      }
+      setUserDownvotedIds((prev) => [...prev, venueId]);
+      setVenues((prev) =>
+        prev.map((v) =>
+          v.id === venueId
+            ? {
+                ...v,
+                downvotes: v.downvotes + 1,
+                votedBy: Array.from(new Set([...(v.votedBy || []), userName])),
+              }
+            : v
+        )
+      );
     }
 
     await voteVenueApi(currentPingId, venueId, userName, type);
@@ -227,18 +317,43 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
     await lockPingApi(currentPingId);
   };
 
-  const sortedVenues = [...venues].sort((a, b) => (b.upvotes ?? b.votes) - (a.upvotes ?? a.votes));
+  // Format 20-Min Timer Minutes & Seconds
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+  const maxFiveVenues = venues.slice(0, 5);
+  const sortedVenues = [...maxFiveVenues].sort((a, b) => (b.upvotes ?? b.votes) - (a.upvotes ?? a.votes));
+  
+  // Top 3 Visible Cards vs Queued Pool (#4 & #5)
+  const topThreeVenues = sortedVenues.slice(0, 3);
+  const queuedVenues = sortedVenues.slice(3, 5);
   const topVenue = sortedVenues[0] || venues[0];
 
   return (
     <section
       ref={sectionRef}
       id="explore"
-      className="py-24 px-4 sm:px-8 bg-[#2D5D4B] text-[#F9F1F0] transition-colors duration-700 select-none overflow-hidden"
+      className="py-24 px-4 sm:px-8 bg-[#2D5D4B] text-[#F9F1F0] transition-colors duration-700 select-none overflow-hidden relative"
     >
+      {/* Floating Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[99999] px-6 py-4 bg-[#FFD600] text-[#1E2A27] font-foudre font-black text-xl rounded-full shadow-2xl border-4 border-white flex items-center gap-3 uppercase tracking-wide"
+          >
+            <PartyPopper className="w-6 h-6 text-[#C84B31] animate-bounce" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-[1550px] mx-auto space-y-10">
         
-        {/* Top Arena Header: Vibrant Crimson Card */}
+        {/* Top Arena Header: Crimson Card */}
         <div className="bg-[#C84B31] text-white p-8 sm:p-12 rounded-[40px] shadow-2xl border-4 border-white/20 relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           
           {/* Background Ambient Glow */}
@@ -251,7 +366,12 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
                 LIVE SQUAD VOTING ARENA
               </span>
 
-              <span className="px-3.5 py-1.5 bg-black/20 text-white font-sans font-bold text-xs rounded-full border border-white/20 flex items-center gap-2">
+              {/* Daily 5 Votes Cap Badge */}
+              <span className="px-3.5 py-1.5 bg-black/30 text-[#FFD600] font-sans font-black text-xs rounded-full border border-white/20 flex items-center gap-1.5 shadow-sm">
+                🎟️ Daily Votes: {Math.max(0, MAX_DAILY_VOTES - usedDailyVotes)} / {MAX_DAILY_VOTES} Left
+              </span>
+
+              <span className="px-3.5 py-1.5 bg-white/10 text-white font-sans font-bold text-xs rounded-full border border-white/20 flex items-center gap-2">
                 <Radio className={`w-3.5 h-3.5 ${isConnected ? 'text-[#FFD600]' : 'text-white/60'}`} />
                 {isConnected ? 'Real-Time Sync Active' : 'Offline Mode'}
               </span>
@@ -262,7 +382,7 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
             </h2>
 
             <p className="text-sm sm:text-base font-sans text-white/90 font-medium leading-relaxed">
-              Drop your vote on places & times below. You are voting as <span className="text-[#FFD600] font-black underline">{userName}</span>!
+              Drop votes on top venues. Max 5 votes/day per person. Voting as <span className="text-[#FFD600] font-black underline">{userName}</span>.
             </p>
           </div>
 
@@ -278,7 +398,7 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
               <span>Invite Squad</span>
             </motion.button>
 
-            {!isLocked && (
+            {!isLocked && !isExpired && (
               <motion.button
                 onClick={handleLockIn}
                 whileHover={{ scale: 1.05 }}
@@ -292,7 +412,7 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
           </div>
         </div>
 
-        {/* Current Leader Podium Banner */}
+        {/* 20-Min Expiry Timer & Leaderboard Banner */}
         <div className="bg-[#1E2A27] text-white p-6 sm:p-8 rounded-[36px] border-4 border-[#FFD600]/40 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-[#FFD600] text-[#1E2A27] flex items-center justify-center shadow-xl border-2 border-white shrink-0">
@@ -300,7 +420,7 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
             </div>
             <div>
               <span className="text-xs font-sans font-bold text-[#FFD600] uppercase tracking-widest block">
-                {isLocked ? '🏆 OFFICIAL WINNING VENUE' : '🔥 CURRENT #1 LEADERBOARD SPOT'}
+                {isExpired ? '⌛ 20-MIN ARENA EXPIRED & ARCHIVED' : isLocked ? '🏆 OFFICIAL WINNING VENUE' : '🔥 CURRENT #1 LEADERBOARD SPOT'}
               </span>
               <h3 className="font-foudre font-black text-3xl sm:text-4xl text-white uppercase tracking-tight leading-none mt-1">
                 {topVenue.name}
@@ -311,30 +431,35 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/10 px-5 py-3 rounded-2xl border border-white/20 text-xs font-sans font-bold text-white shrink-0">
-            <Clock className="w-4 h-4 text-[#FFD600]" />
-            <span>{isLocked ? 'Ping Locked & Confirmed' : 'Voting closes in 14 mins'}</span>
+          {/* Live 20-Min Countdown Clock */}
+          <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 text-sm font-sans font-black uppercase tracking-wider shrink-0 ${
+            isExpired ? 'bg-[#C84B31] text-white border-white' : 'bg-white/10 text-white border-white/20'
+          }`}>
+            <Clock className="w-5 h-5 text-[#FFD600] animate-spin" style={{ animationDuration: '4s' }} />
+            <span>{isExpired ? 'Room Expired' : `Room Expires in ${formattedTime}`}</span>
           </div>
         </div>
 
         {/* Main Grid: Venue Battle Cards & Time Slots */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: YES / NO Venue Cards */}
+          {/* Left Column: Top 3 Active Cards + Queued Pool */}
           <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between px-2">
               <h3 className="font-foudre font-black text-3xl sm:text-4xl uppercase text-white tracking-tight">
-                VOTE ON VENUES ({venues.length})
+                TOP VENUES ({topThreeVenues.length} ACTIVE)
               </h3>
-              <span className="text-xs font-sans font-bold text-white/80 uppercase tracking-wider">
-                Tap YES 👍 or NO 👎
+              <span className="text-xs font-sans font-bold text-[#FFD600] uppercase tracking-wider">
+                Max 5 Total • Max 3 Active Panel
               </span>
             </div>
 
+            {/* Top 3 Active Cards */}
             <div className="space-y-6">
-              {venues.map((venue, idx) => {
+              {topThreeVenues.map((venue, idx) => {
                 const isUpvoted = userUpvotedIds.includes(venue.id);
                 const isDownvoted = userDownvotedIds.includes(venue.id);
+                const isAlreadyVoted = isUpvoted || isDownvoted;
                 const totalVoters = venue.votedBy ? venue.votedBy.length : (venue.upvotes + venue.downvotes);
                 const yesPercentage = totalVoters > 0 ? Math.round((venue.upvotes / Math.max(1, totalVoters)) * 100) : 100;
 
@@ -427,45 +552,53 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
                             ))}
                           </div>
 
-                          <div className="flex items-center gap-3">
-                            {/* YES BUTTON */}
-                            <motion.button
-                              onClick={() => handleVote(venue.id, 'up')}
-                              disabled={isLocked}
-                              whileHover={{ scale: isLocked ? 1 : 1.05 }}
-                              whileTap={{ scale: isLocked ? 1 : 0.93 }}
-                              className={`px-5 py-3 rounded-2xl font-sans font-extrabold text-xs sm:text-sm border-2 border-[#2D5D4B] shadow-lg flex items-center gap-2 cursor-pointer uppercase tracking-wider ${
-                                isUpvoted
-                                  ? 'bg-[#C84B31] text-white border-[#C84B31]'
-                                  : 'bg-[#2D5D4B] text-white hover:bg-[#2D5D4B]/90'
-                              }`}
-                            >
-                              <ThumbsUp className={`w-4 h-4 ${isUpvoted ? 'fill-white' : ''}`} />
-                              <span>YES</span>
-                              <span className="px-2 py-0.5 bg-black/20 rounded-lg font-mono font-black text-xs">
-                                {venue.upvotes}
-                              </span>
-                            </motion.button>
+                          {isAlreadyVoted ? (
+                            <div className="flex items-center gap-2">
+                              {isUpvoted && (
+                                <span className="px-5 py-3 bg-[#C84B31] text-white rounded-2xl font-sans font-extrabold text-xs uppercase flex items-center gap-2 shadow-lg border-2 border-white">
+                                  <Check className="w-4 h-4 stroke-[3]" />
+                                  <span>VOTED YES ({venue.upvotes})</span>
+                                </span>
+                              )}
+                              {isDownvoted && (
+                                <span className="px-5 py-3 bg-[#4A154B] text-white rounded-2xl font-sans font-extrabold text-xs uppercase flex items-center gap-2 shadow-lg border-2 border-white">
+                                  <Check className="w-4 h-4 stroke-[3]" />
+                                  <span>VOTED NO ({venue.downvotes})</span>
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <motion.button
+                                onClick={() => handleVote(venue.id, 'up')}
+                                disabled={isLocked || isExpired || usedDailyVotes >= MAX_DAILY_VOTES}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.93 }}
+                                className="px-5 py-3 rounded-2xl font-sans font-extrabold text-xs sm:text-sm border-2 border-[#2D5D4B] shadow-lg flex items-center gap-2 cursor-pointer uppercase tracking-wider bg-[#2D5D4B] text-white hover:bg-[#2D5D4B]/90 disabled:opacity-50"
+                              >
+                                <ThumbsUp className="w-4 h-4 fill-white" />
+                                <span>YES</span>
+                                <span className="px-2 py-0.5 bg-black/20 rounded-lg font-mono font-black text-xs">
+                                  {venue.upvotes}
+                                </span>
+                              </motion.button>
 
-                            {/* NO BUTTON */}
-                            <motion.button
-                              onClick={() => handleVote(venue.id, 'down')}
-                              disabled={isLocked}
-                              whileHover={{ scale: isLocked ? 1 : 1.05 }}
-                              whileTap={{ scale: isLocked ? 1 : 0.93 }}
-                              className={`px-5 py-3 rounded-2xl font-sans font-extrabold text-xs sm:text-sm border-2 border-[#2D5D4B] shadow-lg flex items-center gap-2 cursor-pointer uppercase tracking-wider ${
-                                isDownvoted
-                                  ? 'bg-[#4A154B] text-white border-[#4A154B]'
-                                  : 'bg-white text-[#2D5D4B] hover:bg-neutral-100'
-                              }`}
-                            >
-                              <ThumbsDown className={`w-4 h-4 ${isDownvoted ? 'fill-white' : ''}`} />
-                              <span>NO</span>
-                              <span className="px-2 py-0.5 bg-black/10 rounded-lg font-mono font-black text-xs">
-                                {venue.downvotes}
-                              </span>
-                            </motion.button>
-                          </div>
+                              <motion.button
+                                onClick={() => handleVote(venue.id, 'down')}
+                                disabled={isLocked || isExpired || usedDailyVotes >= MAX_DAILY_VOTES}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.93 }}
+                                className="px-5 py-3 rounded-2xl font-sans font-extrabold text-xs sm:text-sm border-2 border-[#2D5D4B] shadow-lg flex items-center gap-2 cursor-pointer uppercase tracking-wider bg-white text-[#2D5D4B] hover:bg-neutral-100 disabled:opacity-50"
+                              >
+                                <ThumbsDown className="w-4 h-4 text-[#2D5D4B]" />
+                                <span>NO</span>
+                                <span className="px-2 py-0.5 bg-black/10 rounded-lg font-mono font-black text-xs">
+                                  {venue.downvotes}
+                                </span>
+                              </motion.button>
+                            </div>
+                          )}
+
                         </div>
 
                       </div>
@@ -475,6 +608,51 @@ export const VotingRoom: React.FC<VotingRoomProps> = ({
                 );
               })}
             </div>
+
+            {/* Queued Venues Pool (#4 & #5) */}
+            {queuedVenues.length > 0 && (
+              <div className="pt-4">
+                <button
+                  onClick={() => setShowQueuePool(!showQueuePool)}
+                  className="w-full p-5 bg-[#1E2A27] text-white rounded-3xl border-2 border-[#FFD600]/30 shadow-xl flex items-center justify-between hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 bg-[#FFD600] text-[#1E2A27] font-foudre font-black text-xs uppercase rounded-full">
+                      ⏳ QUEUED POOL ({queuedVenues.length})
+                    </span>
+                    <span className="text-xs font-sans text-white/80 font-bold uppercase">
+                      Unlocks when timer expires
+                    </span>
+                  </div>
+
+                  {showQueuePool ? <ChevronUp className="w-5 h-5 text-[#FFD600]" /> : <ChevronDown className="w-5 h-5 text-[#FFD600]" />}
+                </button>
+
+                <AnimatePresence>
+                  {showQueuePool && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4 pt-4 overflow-hidden"
+                    >
+                      {queuedVenues.map((v) => (
+                        <div key={v.id} className="p-4 bg-white/10 rounded-2xl border border-white/20 flex items-center justify-between">
+                          <div>
+                            <h5 className="font-foudre font-black text-xl text-[#FFD600] uppercase">{v.name}</h5>
+                            <p className="text-xs font-sans text-white/70">{v.category} • {v.address}</p>
+                          </div>
+                          <span className="px-3 py-1 bg-white/10 text-white font-mono text-xs font-bold rounded-lg uppercase">
+                            Queued (#4)
+                          </span>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
           </div>
 
           {/* Right Column: Time Slots & Map Radar */}

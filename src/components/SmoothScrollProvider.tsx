@@ -13,28 +13,33 @@ export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ chil
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    // Initialize Lenis smooth scroll
+    // Initialize Lenis smooth scroll with active fluid momentum physics
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
       smoothWheel: true,
-      touchMultiplier: 2,
+      wheelMultiplier: 1.15,
+      touchMultiplier: 2.2,
+      syncTouch: false,
     });
 
     lenisRef.current = lenis;
 
-    // Synchronize Lenis scroll position with GSAP ScrollTrigger
+    // Synchronize Lenis scroll position with GSAP ScrollTrigger on every frame
     lenis.on('scroll', ScrollTrigger.update);
 
-    // Add Lenis requestAnimationFrame to GSAP ticker for frame-perfect sync
     const updateTicker = (time: number) => {
       lenis.raf(time * 1000);
     };
 
     gsap.ticker.add(updateTicker);
-
-    // Disable lag smoothing to prevent stutter during fast scrolls
     gsap.ticker.lagSmoothing(0);
+
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500);
 
     return () => {
       gsap.ticker.remove(updateTicker);
