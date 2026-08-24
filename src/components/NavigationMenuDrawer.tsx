@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, QrCode, Instagram, Linkedin, Share2, MessageCircle, Zap } from 'lucide-react';
+import { X, QrCode, Instagram, Linkedin, Share2, MessageCircle } from 'lucide-react';
+import { PingLogoSvg } from './PingLogoSvg';
 
 interface NavigationMenuDrawerProps {
   isOpen: boolean;
@@ -73,21 +74,19 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
             className="absolute top-0 right-0 w-1/2 h-full bg-[#1E2A27] z-10 border-l-2 border-white/10 shadow-2xl"
           />
 
-          {/* WAY BIGGER PING Brand Emblem in Center Anvil Clash */}
+          {/* WAY BIGGER PING Brand Vector SVG Emblem in Center Anvil Clash */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             exit={{ scale: 0, rotate: 180 }}
             transition={{ duration: 0.55, delay: 0.25, ease: 'backOut' }}
-            className="absolute inset-0 m-auto w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-[#C84B31] text-white z-20 hidden md:flex flex-col items-center justify-center shadow-[0_0_60px_rgba(200,75,49,0.6)] border-4 border-white cursor-pointer hover:scale-110 transition-transform p-4"
+            className="absolute inset-0 m-auto w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-[#C84B31] text-white z-20 hidden md:flex flex-col items-center justify-center shadow-[0_0_60px_rgba(200,75,49,0.6)] border-4 border-white cursor-pointer hover:scale-110 transition-transform p-4"
             onClick={onClose}
           >
-            <span className="font-foudre font-black text-5xl sm:text-6xl text-white uppercase leading-none tracking-tighter drop-shadow-md">
+            <PingLogoSvg variant="icon" size={100} />
+            <span className="font-foudre font-black text-4xl sm:text-5xl text-white uppercase leading-none tracking-tight mt-2 drop-shadow-md">
               PING
             </span>
-            <div className="w-8 h-8 rounded-full bg-[#2D5D4B] text-[#F9F1F0] flex items-center justify-center mt-1 shadow-inner">
-              <Zap className="w-4 h-4 fill-current" />
-            </div>
           </motion.div>
 
           {/* Main Overlay Content */}
@@ -98,7 +97,7 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
             transition={{ duration: 0.3, delay: 0.15 }}
             className="relative z-30 w-full h-full text-[#F9F1F0] p-6 sm:p-12 flex flex-col justify-between overflow-y-auto"
           >
-            {/* Top Bar: Close Button & Giant Brand Badge */}
+            {/* Top Bar: Close Button & Vector SVG Brand Badge */}
             <div className="w-full flex items-center justify-between">
               <motion.button
                 type="button"
@@ -111,6 +110,7 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
               </motion.button>
 
               <div className="flex items-center gap-3 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                <PingLogoSvg variant="icon" size={28} />
                 <span className="font-foudre font-black text-3xl text-[#E89A3C] uppercase tracking-wider">
                   PING
                 </span>

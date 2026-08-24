@@ -50,7 +50,7 @@ export const Preloader: React.FC = () => {
             transition={{
               duration: 2.4,
               times: [0, 0.35, 0.5, 0.65, 1],
-              ease: ['cubic-bezier(0.175, 0.885, 0.32, 1.275)', 'easeOut', 'easeInOut', 'cubic-bezier(0.7, 0, 0.84, 0)'],
+              ease: ['easeOut', 'easeOut', 'easeInOut', 'easeInOut'],
             }}
             className="w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-[#F9F1F0] text-[#C84B31] shadow-2xl flex flex-col items-center justify-center p-6 border-4 border-white/60 z-10"
           >
