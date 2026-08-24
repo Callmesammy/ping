@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Laptop, ThumbsUp, Zap, Smile } from 'lucide-react';
@@ -90,21 +89,21 @@ export const WhyChoosePing: React.FC = () => {
     <section
       ref={sectionRef}
       id="why-ping"
-      className="relative w-full h-screen bg-[#4A154B] text-white py-16 overflow-hidden flex flex-col justify-between transition-colors select-none"
+      className="relative w-full min-h-screen lg:h-screen bg-[#4A154B] text-white pt-24 pb-12 lg:py-16 overflow-hidden flex flex-col justify-between transition-colors select-none"
     >
       {/* Top Banner Tag */}
-      <div className="max-w-7xl mx-auto px-4 md:px-12 w-full flex items-center justify-between z-20">
-        <span className="text-xs font-sans font-bold uppercase tracking-widest text-[#E89A3C]">
+      <div className="max-w-7xl mx-auto px-4 md:px-12 w-full flex items-center justify-between z-20 pt-4 sm:pt-0">
+        <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-[#E89A3C]">
           WHY SQUADS CHOOSE PING • 4 PILLARS
         </span>
-        <span className="text-xs font-sans font-bold uppercase tracking-wider text-white/80">
+        <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-wider text-white/80 hidden sm:inline-block">
           Scroll down to flip cards →
         </span>
       </div>
 
       {/* Giant Center Background Headline */}
-      <div className="absolute inset-0 m-auto flex flex-col items-center justify-center z-0 pointer-events-none px-4">
-        <h2 className="font-foudre font-black text-[18vw] sm:text-[14vw] lg:text-[11.5vw] leading-[0.76] text-[#F9F1F0]/15 uppercase tracking-tighter text-center">
+      <div className="absolute inset-0 m-auto flex flex-col items-center justify-center z-0 pointer-events-none px-4 pt-16 sm:pt-0">
+        <h2 className="font-foudre font-black text-[16vw] sm:text-[14vw] lg:text-[11.5vw] leading-[0.76] text-[#F9F1F0]/15 uppercase tracking-tighter text-center">
           WHY <br />
           SQUADS <br />
           CHOOSE PING
@@ -112,7 +111,7 @@ export const WhyChoosePing: React.FC = () => {
       </div>
 
       {/* 3D Flip Cards Grid Container */}
-      <div className="w-full my-auto z-10 max-w-[1500px] mx-auto px-4 md:px-8">
+      <div className="w-full my-auto z-10 max-w-[1500px] mx-auto px-4 md:px-8 pt-6 sm:pt-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-center justify-items-center">
           {WHY_CARDS.map((card, idx) => {
             const IconComponent = card.icon;
@@ -123,20 +122,20 @@ export const WhyChoosePing: React.FC = () => {
               <div
                 key={card.id}
                 ref={refMap[idx]}
-                className={`relative w-full max-w-[320px] sm:max-w-[340px] h-[440px] sm:h-[490px] ${cardBgs[idx]} rounded-[36px] p-7 shadow-2xl flex flex-col justify-between border-2 border-white/20 cursor-pointer group`}
+                className={`relative w-full max-w-[290px] sm:max-w-[340px] h-[380px] sm:h-[480px] ${cardBgs[idx]} rounded-[36px] p-6 sm:p-7 shadow-2xl flex flex-col justify-between border-2 border-white/20 cursor-pointer group`}
               >
                 {/* Top Icon */}
-                <div className="w-14 h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current group-hover:scale-110 transition-transform">
-                  <IconComponent className="w-7 h-7 stroke-[2]" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current group-hover:scale-110 transition-transform">
+                  <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2]" />
                 </div>
 
                 {/* Center Title & Description */}
-                <div className="space-y-3 my-auto">
-                  <h3 className="font-foudre font-black text-3xl sm:text-4xl uppercase leading-[0.8] tracking-tight">
+                <div className="space-y-2 sm:space-y-3 my-auto">
+                  <h3 className="font-foudre font-black text-2xl sm:text-4xl uppercase leading-[0.85] tracking-tight">
                     {card.title}
                   </h3>
 
-                  <p className="text-xs font-sans font-medium leading-relaxed opacity-90">
+                  <p className="text-[11px] sm:text-xs font-sans font-medium leading-relaxed opacity-90">
                     {card.description}
                   </p>
                 </div>

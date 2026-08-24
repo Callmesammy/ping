@@ -242,10 +242,10 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl h-full bg-[#1E2A27] text-[#F9F1F0] border-l-4 border-white/20 shadow-2xl flex flex-col justify-between"
+            className="w-full max-w-xl h-full bg-[#1E2A27] text-[#F9F1F0] border-l-4 border-white/20 shadow-2xl flex flex-col justify-between overflow-hidden"
           >
             {/* Header */}
-            <div className="p-6 bg-[#2D5D4B] border-b border-white/10 space-y-4">
+            <div className="p-6 bg-[#2D5D4B] border-b border-white/10 space-y-4 shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-[#C84B31] text-white rounded-2xl shadow-md flex items-center justify-center">
@@ -301,7 +301,7 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
 
               {/* DM Peer Selector Bar */}
               {activeTab === 'dm' && (
-                <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1">
+                <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1" data-lenis-prevent="true">
                   {SQUAD_PEERS.map((peer) => (
                     <button
                       key={peer.handle}
@@ -321,7 +321,7 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
             </div>
 
             {/* Persona Switcher Bar */}
-            <div className="px-6 py-2 bg-black/30 flex items-center justify-between border-b border-white/10 text-[11px] font-sans">
+            <div className="px-6 py-2 bg-black/30 flex items-center justify-between border-b border-white/10 text-[11px] font-sans shrink-0">
               <span className="text-white/60 font-bold uppercase">Active Sender:</span>
               <div className="flex items-center gap-2">
                 <button
@@ -346,8 +346,13 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
               </div>
             </div>
 
-            {/* Messages Stream */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+            {/* Messages Stream Container (With data-lenis-prevent and touch/wheel propagation handlers) */}
+            <div
+              data-lenis-prevent="true"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              className="flex-1 p-6 overflow-y-auto min-h-0 space-y-4 select-text overscroll-contain"
+            >
               {currentChatList.map((msg) => {
                 const isMe = msg.sender === activeSender;
 
@@ -405,7 +410,7 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
             </div>
 
             {/* 1-Tap AI Prompt Action Chips */}
-            <div className="px-6 py-2 bg-black/25 flex items-center gap-2 overflow-x-auto border-t border-white/10">
+            <div className="px-6 py-2 bg-black/25 flex items-center gap-2 overflow-x-auto border-t border-white/10 shrink-0" data-lenis-prevent="true">
               {AI_ACTION_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
@@ -418,12 +423,12 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
             </div>
 
             {/* Quick Emoji Reaction Bar */}
-            <div className="px-6 py-2 bg-black/20 flex items-center gap-2 overflow-x-auto border-t border-white/10">
+            <div className="px-6 py-2 bg-black/20 flex items-center gap-2 overflow-x-auto border-t border-white/10 shrink-0" data-lenis-prevent="true">
               {['🍸', '🔥', '🌮', '🍻', '🚀', '💯', '🥳', '📍'].map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => handleSendEmoji(emoji)}
-                  className="px-3 py-1 bg-white/10 hover:bg-[#C84B31] text-sm rounded-full transition-colors cursor-pointer"
+                  className="px-3 py-1 bg-white/10 hover:bg-[#C84B31] text-sm rounded-full transition-colors cursor-pointer shrink-0"
                 >
                   {emoji}
                 </button>
@@ -431,7 +436,7 @@ export const LiveChatDrawer: React.FC<LiveChatDrawerProps> = ({
             </div>
 
             {/* Input Form */}
-            <form onSubmit={(e) => handleSendMessage(undefined, e)} className="p-4 bg-[#2D5D4B] border-t border-white/10 flex items-center gap-3">
+            <form onSubmit={(e) => handleSendMessage(undefined, e)} className="p-4 bg-[#2D5D4B] border-t border-white/10 flex items-center gap-3 shrink-0">
               <input
                 type="text"
                 value={inputText}

@@ -136,35 +136,34 @@ export const ExpertisesSection: React.FC = () => {
     <section
       ref={sectionRef}
       id="method"
-      className="relative w-full h-screen bg-[#F9F1F0] text-[#2D5D4B] py-16 px-4 md:px-12 overflow-hidden flex items-center justify-center transition-colors duration-700 select-none"
+      className="relative w-full min-h-screen lg:h-screen bg-[#F9F1F0] text-[#2D5D4B] pt-24 pb-12 lg:py-16 px-4 md:px-12 overflow-hidden flex items-center justify-center transition-colors duration-700 select-none"
     >
-      <div className="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10 h-full">
+      <div className="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center z-10 h-full">
         
-        {/* Left Column */}
-        <div ref={leftColRef} className="lg:col-span-4 space-y-6 relative">
+        {/* Left Column: Headlines & Sticker */}
+        <div ref={leftColRef} className="lg:col-span-4 space-y-4 lg:space-y-6 relative min-h-[160px] lg:min-h-0">
           
           {/* Initial Headline */}
-          <div ref={expertiseTitleRef} className="space-y-4">
-            <span className="text-xs font-sans font-bold text-[#C84B31] uppercase tracking-widest block">
+          <div ref={expertiseTitleRef} className="space-y-2 lg:space-y-4">
+            <span className="text-[11px] sm:text-xs font-sans font-bold text-[#C84B31] uppercase tracking-widest block">
               PING CORE ENGINE
             </span>
-            <h2 className="font-foudre font-black text-[12vw] sm:text-[8.5vw] lg:text-[5.5vw] leading-[0.78] text-[#C84B31] uppercase tracking-tighter block">
-              BUILT FOR <br />
-              SQUAD DECISIONS: <br />
+            <h2 className="font-foudre font-black text-[10vw] sm:text-[8vw] lg:text-[5.5vw] leading-[0.8] text-[#C84B31] uppercase tracking-tighter block">
+              BUILT FOR <br className="hidden sm:block" />
+              SQUAD DECISIONS: <br className="hidden sm:block" />
               ZERO AGENDAS.
             </h2>
           </div>
 
           {/* Transitioned Headline */}
-          <div ref={methodTitleRef} className="space-y-4 absolute top-0 left-0 w-full opacity-0">
-            <span className="text-xs font-sans font-bold text-[#F9F1F0] uppercase tracking-widest block">
+          <div ref={methodTitleRef} className="space-y-2 lg:space-y-4 absolute top-0 left-0 w-full opacity-0">
+            <span className="text-[11px] sm:text-xs font-sans font-bold text-[#F9F1F0] uppercase tracking-widest block">
               SPONTANEOUS METHOD
             </span>
-            <h2 className="font-foudre font-black text-[12vw] sm:text-[8.5vw] lg:text-[5.5vw] leading-[0.78] text-[#F9F1F0] uppercase tracking-tighter block">
-              WE PREFER <br />
-              SPONTANEOUS <br />
-              PLANS. <br />
-              ALWAYS.
+            <h2 className="font-foudre font-black text-[10vw] sm:text-[8vw] lg:text-[5.5vw] leading-[0.8] text-[#F9F1F0] uppercase tracking-tighter block">
+              WE PREFER <br className="hidden sm:block" />
+              SPONTANEOUS <br className="hidden sm:block" />
+              PLANS. ALWAYS.
             </h2>
           </div>
 
@@ -174,33 +173,33 @@ export const ExpertisesSection: React.FC = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#C84B31] text-[#F9F1F0] rounded-[24px] shadow-md text-lg font-bold border border-white/40"
+            className="inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#C84B31] text-[#F9F1F0] rounded-[24px] shadow-md text-base sm:text-lg font-bold border border-white/40"
           >
             <span>{activeBubble}</span>
           </motion.div>
         </div>
 
         {/* Center Column: Card Toss Stack Deck */}
-        <div ref={cardDeckRef} className="lg:col-span-4 h-[460px] sm:h-[520px] relative flex justify-center items-center">
+        <div ref={cardDeckRef} className="lg:col-span-4 h-[360px] sm:h-[500px] relative flex justify-center items-center my-4 lg:my-0">
           
           {/* Card 01 */}
           <div
             ref={card1Ref}
             style={{ backgroundColor: METHOD_CARDS[0].bgColor }}
-            className="absolute inset-0 m-auto w-[280px] sm:w-[340px] h-[380px] sm:h-[440px] rounded-[40px] shadow-2xl text-white p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-10"
+            className="absolute inset-0 m-auto w-[250px] sm:w-[330px] h-[330px] sm:h-[430px] rounded-[36px] sm:rounded-[40px] shadow-2xl text-white p-6 sm:p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-10"
           >
             <div>
-              <span className="text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
+              <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
                 {METHOD_CARDS[0].category}
               </span>
             </div>
             <div className="my-auto text-center">
-              <span className="font-foudre font-black text-[120px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
+              <span className="font-foudre font-black text-[100px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
                 {METHOD_CARDS[0].number}
               </span>
             </div>
             <div className="text-center">
-              <p className="text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
                 {METHOD_CARDS[0].subtitle}
               </p>
             </div>
@@ -210,20 +209,20 @@ export const ExpertisesSection: React.FC = () => {
           <div
             ref={card2Ref}
             style={{ backgroundColor: METHOD_CARDS[1].bgColor }}
-            className="absolute inset-0 m-auto opacity-0 w-[280px] sm:w-[340px] h-[380px] sm:h-[440px] rounded-[40px] shadow-2xl text-white p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-20"
+            className="absolute inset-0 m-auto opacity-0 w-[250px] sm:w-[330px] h-[330px] sm:h-[430px] rounded-[36px] sm:rounded-[40px] shadow-2xl text-white p-6 sm:p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-20"
           >
             <div>
-              <span className="text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
+              <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
                 {METHOD_CARDS[1].category}
               </span>
             </div>
             <div className="my-auto text-center">
-              <span className="font-foudre font-black text-[120px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
+              <span className="font-foudre font-black text-[100px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
                 {METHOD_CARDS[1].number}
               </span>
             </div>
             <div className="text-center">
-              <p className="text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
                 {METHOD_CARDS[1].subtitle}
               </p>
             </div>
@@ -233,20 +232,20 @@ export const ExpertisesSection: React.FC = () => {
           <div
             ref={card3Ref}
             style={{ backgroundColor: METHOD_CARDS[2].bgColor }}
-            className="absolute inset-0 m-auto opacity-0 w-[280px] sm:w-[340px] h-[380px] sm:h-[440px] rounded-[40px] shadow-2xl text-[#1E2A27] p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-30"
+            className="absolute inset-0 m-auto opacity-0 w-[250px] sm:w-[330px] h-[330px] sm:h-[430px] rounded-[36px] sm:rounded-[40px] shadow-2xl text-[#1E2A27] p-6 sm:p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-30"
           >
             <div>
-              <span className="text-xs font-sans font-bold uppercase tracking-widest text-[#1E2A27]/80 block">
+              <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-[#1E2A27]/80 block">
                 {METHOD_CARDS[2].category}
               </span>
             </div>
             <div className="my-auto text-center">
-              <span className="font-foudre font-black text-[120px] sm:text-[140px] leading-none text-[#1E2A27] block tracking-tighter drop-shadow-md">
+              <span className="font-foudre font-black text-[100px] sm:text-[140px] leading-none text-[#1E2A27] block tracking-tighter drop-shadow-md">
                 {METHOD_CARDS[2].number}
               </span>
             </div>
             <div className="text-center">
-              <p className="text-xs font-sans font-bold text-[#1E2A27]/90 uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-sans font-bold text-[#1E2A27]/90 uppercase tracking-wider">
                 {METHOD_CARDS[2].subtitle}
               </p>
             </div>
@@ -256,20 +255,20 @@ export const ExpertisesSection: React.FC = () => {
           <div
             ref={card4Ref}
             style={{ backgroundColor: METHOD_CARDS[3].bgColor }}
-            className="absolute inset-0 m-auto opacity-0 w-[280px] sm:w-[340px] h-[380px] sm:h-[440px] rounded-[40px] shadow-2xl text-white p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-40"
+            className="absolute inset-0 m-auto opacity-0 w-[250px] sm:w-[330px] h-[330px] sm:h-[430px] rounded-[36px] sm:rounded-[40px] shadow-2xl text-white p-6 sm:p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-40"
           >
             <div>
-              <span className="text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
+              <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
                 {METHOD_CARDS[3].category}
               </span>
             </div>
             <div className="my-auto text-center">
-              <span className="font-foudre font-black text-[120px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
+              <span className="font-foudre font-black text-[100px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
                 {METHOD_CARDS[3].number}
               </span>
             </div>
             <div className="text-center">
-              <p className="text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
                 {METHOD_CARDS[3].subtitle}
               </p>
             </div>
@@ -279,20 +278,20 @@ export const ExpertisesSection: React.FC = () => {
           <div
             ref={card5Ref}
             style={{ backgroundColor: METHOD_CARDS[4].bgColor }}
-            className="absolute inset-0 m-auto opacity-0 w-[280px] sm:w-[340px] h-[380px] sm:h-[440px] rounded-[40px] shadow-2xl text-white p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-50"
+            className="absolute inset-0 m-auto opacity-0 w-[250px] sm:w-[330px] h-[330px] sm:h-[430px] rounded-[36px] sm:rounded-[40px] shadow-2xl text-white p-6 sm:p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-50"
           >
             <div>
-              <span className="text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
+              <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
                 {METHOD_CARDS[4].category}
               </span>
             </div>
             <div className="my-auto text-center">
-              <span className="font-foudre font-black text-[120px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
+              <span className="font-foudre font-black text-[100px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
                 {METHOD_CARDS[4].number}
               </span>
             </div>
             <div className="text-center">
-              <p className="text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
                 {METHOD_CARDS[4].subtitle}
               </p>
             </div>
@@ -302,20 +301,20 @@ export const ExpertisesSection: React.FC = () => {
           <div
             ref={card6Ref}
             style={{ backgroundColor: METHOD_CARDS[5].bgColor }}
-            className="absolute inset-0 m-auto opacity-0 w-[280px] sm:w-[340px] h-[380px] sm:h-[440px] rounded-[40px] shadow-2xl text-white p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-[60]"
+            className="absolute inset-0 m-auto opacity-0 w-[250px] sm:w-[330px] h-[330px] sm:h-[430px] rounded-[36px] sm:rounded-[40px] shadow-2xl text-white p-6 sm:p-8 flex flex-col justify-between cursor-pointer border-2 border-white/20 z-[60]"
           >
             <div>
-              <span className="text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
+              <span className="text-[10px] sm:text-xs font-sans font-bold uppercase tracking-widest text-white/80 block">
                 {METHOD_CARDS[5].category}
               </span>
             </div>
             <div className="my-auto text-center">
-              <span className="font-foudre font-black text-[120px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
+              <span className="font-foudre font-black text-[100px] sm:text-[140px] leading-none text-white block tracking-tighter drop-shadow-md">
                 {METHOD_CARDS[5].number}
               </span>
             </div>
             <div className="text-center">
-              <p className="text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-sans font-bold text-white/90 uppercase tracking-wider">
                 {METHOD_CARDS[5].subtitle}
               </p>
             </div>
@@ -324,10 +323,10 @@ export const ExpertisesSection: React.FC = () => {
         </div>
 
         {/* Right Column: English Process Writeup */}
-        <div className="lg:col-span-4 flex flex-col justify-between h-[480px] py-2">
+        <div className="lg:col-span-4 flex flex-col justify-between min-h-[300px] lg:h-[480px] py-2 space-y-4 lg:space-y-0">
           
-          <div className="space-y-4">
-            <h3 className="font-sans font-bold text-sm sm:text-base text-[#C84B31] uppercase tracking-wide">
+          <div className="space-y-3">
+            <h3 className="font-sans font-bold text-xs sm:text-base text-[#C84B31] uppercase tracking-wide">
               At Ping, every hangout follows a seamless 1-click consensus flow.
             </h3>
             <p className="font-sans text-xs sm:text-sm text-[#2D5D4B]/90 leading-relaxed font-medium">
@@ -342,7 +341,7 @@ export const ExpertisesSection: React.FC = () => {
               className="bg-[#C84B31] text-white p-4 rounded-[28px] shadow-2xl w-full border border-white/20"
             >
               <div className="flex flex-row gap-4 items-center">
-                <div className="relative w-28 h-32 rounded-[18px] overflow-hidden shrink-0">
+                <div className="relative w-24 h-28 sm:w-28 sm:h-32 rounded-[18px] overflow-hidden shrink-0">
                   <img
                     src="/pics/tan-tony-Xek1XGQi-Ps-unsplash.jpg"
                     alt="Ping Spotlight"
@@ -355,7 +354,7 @@ export const ExpertisesSection: React.FC = () => {
                     <span className="text-[10px] font-sans text-[#F9F1F0] uppercase font-bold block">
                       SPOTLIGHT VIBE
                     </span>
-                    <h4 className="font-foudre font-black text-2xl text-white uppercase leading-[0.8] my-0.5">
+                    <h4 className="font-foudre font-black text-xl sm:text-2xl text-white uppercase leading-[0.8] my-0.5">
                       OVERSTORY ROOFTOP
                     </h4>
                   </div>
