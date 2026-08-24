@@ -28,9 +28,16 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
   const handleNavClick = (targetId: string) => {
     onClose();
     setTimeout(() => {
-      const el = document.getElementById(targetId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+      if (targetId === 'hero') {
+        window.location.href = '/';
+        setTimeout(() => {
+          window.location.reload();
+        }, 50);
+      } else {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     }, 150);
   };
@@ -81,7 +88,7 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
             exit={{ scale: 0, rotate: 180 }}
             transition={{ duration: 0.55, delay: 0.25, ease: 'backOut' }}
             className="absolute inset-0 m-auto w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-[#C84B31] text-white z-20 hidden md:flex flex-col items-center justify-center shadow-[0_0_60px_rgba(200,75,49,0.6)] border-4 border-white cursor-pointer hover:scale-110 transition-transform p-4"
-            onClick={onClose}
+            onClick={() => handleNavClick('hero')}
           >
             <PingLogoSvg variant="icon" size={100} />
             <span className="font-foudre font-black text-4xl sm:text-5xl text-white uppercase leading-none tracking-tight mt-2 drop-shadow-md">
@@ -192,7 +199,7 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
                       }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-full sm:w-auto px-8 py-3.5 bg-[#C84B31] text-white font-sans font-extrabold text-xs rounded-full uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:bg-[#C84B31]/90 transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-8 py-3.5 bg-[#C84B31] text-[#F9F1F0] font-sans font-extrabold text-xs rounded-full uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:bg-[#C84B31]/90 transition-colors cursor-pointer"
                     >
                       <MessageCircle className="w-4 h-4 fill-white" />
                       <span>Chat With Ping Squad</span>
