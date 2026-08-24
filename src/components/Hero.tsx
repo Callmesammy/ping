@@ -18,7 +18,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
   const rightCardRef = useRef<HTMLDivElement>(null);
   const slide2Ref = useRef<HTMLDivElement>(null);
   const slide3Ref = useRef<HTMLDivElement>(null);
-  const subHeadingRef = useRef<HTMLDivElement>(null);
+  const subHeadingTitleRef = useRef<HTMLHeadingElement>(null);
+  const subHeadingBadgeRef = useRef<HTMLSpanElement>(null);
   const featureCardRef = useRef<HTMLDivElement>(null);
 
   const [isHovered, setIsHovered] = useState(false);
@@ -43,7 +44,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
         },
       });
 
-      // --- PHASE 1: Scroll starts -> Side cards tuck behind center, background turns Warm Crimson (#C84B31) ---
+      // --- PHASE 1: Background turns Warm Crimson (#C84B31) -> Text turns Pure White (#FFFFFF) for maximum high-contrast visibility ---
       tl.to([leftCardRef.current, rightCardRef.current], {
         x: 0,
         rotate: 0,
@@ -66,18 +67,26 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
         {
           y: -180,
           opacity: 0.15,
-          color: '#F9F1F0',
+          color: '#FFFFFF',
           duration: 1.2,
           ease: 'power2.inOut',
         },
         '<'
       )
       .to(
-        subHeadingRef.current,
+        subHeadingTitleRef.current,
         {
-          y: -50,
-          scale: 1.05,
+          color: '#FFFFFF',
+          duration: 1,
+          ease: 'power2.out',
+        },
+        '<'
+      )
+      .to(
+        subHeadingBadgeRef.current,
+        {
           color: '#F9F1F0',
+          opacity: 0.9,
           duration: 1,
         },
         '<'
@@ -97,7 +106,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
         '<+=0.1'
       );
 
-      // --- PHASE 3: 3D PAPER FLIP 2 (Background turns Sage Emerald #2D5D4B, text turns Mustard Gold #E89A3C) ---
+      // --- PHASE 3: Background turns Sage Emerald (#2D5D4B) -> Text turns Mustard Gold (#FFD600) ---
       tl.to(
         sectionRef.current,
         {
@@ -107,9 +116,18 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
         }
       )
       .to(
-        subHeadingRef.current,
+        subHeadingTitleRef.current,
         {
-          color: '#E89A3C',
+          color: '#FFD600',
+          duration: 1,
+        },
+        '<'
+      )
+      .to(
+        subHeadingBadgeRef.current,
+        {
+          color: '#FFFFFF',
+          opacity: 1,
           duration: 1,
         },
         '<'
@@ -270,12 +288,18 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
         {/* Bottom Split Layer */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end z-20 relative -mt-32 sm:-mt-44 md:-mt-56 pb-2">
           
-          {/* Bottom-Left Subheading */}
-          <div ref={subHeadingRef} className="lg:col-span-6 space-y-0.5 transition-colors duration-500">
-            <span className="text-xs font-sans font-semibold opacity-80 tracking-wider uppercase block mb-0.5">
+          {/* Bottom-Left Subheading with Crystal Clear High Contrast Text */}
+          <div className="lg:col-span-6 space-y-0.5">
+            <span
+              ref={subHeadingBadgeRef}
+              className="text-xs font-sans font-extrabold tracking-wider uppercase block mb-0.5 text-[#2D5D4B] transition-colors duration-500"
+            >
               Spontaneous linkup engine
             </span>
-            <h2 className="font-foudre font-black text-[13vw] sm:text-[9.5vw] lg:text-[7.5vw] leading-[0.76] text-[#C84B31] uppercase tracking-tighter block transition-colors">
+            <h2
+              ref={subHeadingTitleRef}
+              className="font-foudre font-black text-[13vw] sm:text-[9.5vw] lg:text-[7.5vw] leading-[0.76] text-[#C84B31] uppercase tracking-tighter block transition-colors duration-500 drop-shadow-sm"
+            >
               SPONTANEITY <br />
               SQUAD CLUB
             </h2>
