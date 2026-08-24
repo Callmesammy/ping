@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UserCheck, Sparkles, Shield, Check } from 'lucide-react';
+import { X, UserCheck, Check, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const AVATAR_OPTIONS = [
@@ -32,16 +33,16 @@ export const AuthModal: React.FC = () => {
     }, 1000);
   };
 
-  return (
+  return ReactDOM.createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 select-none pointer-events-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={closeAuthModal}
-          className="absolute inset-0 bg-[#0F3822]/85 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/70 backdrop-blur-md"
         />
 
         {/* Modal Container */}
@@ -50,46 +51,46 @@ export const AuthModal: React.FC = () => {
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.9, y: 30, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="relative w-full max-w-md bg-[#F4F1EA] p-6 sm:p-8 rounded-3xl border-4 border-[#0F3822] shadow-brutal-lg z-10"
+          className="relative w-full max-w-md bg-[#F9F1F0] text-[#2D5D4B] p-6 sm:p-8 rounded-[36px] border-4 border-[#C84B31]/30 shadow-2xl z-10"
         >
           <button
             onClick={closeAuthModal}
-            className="absolute top-5 right-5 p-2 bg-white rounded-xl border-2 border-black shadow-brutal hover:bg-neutral-100 cursor-pointer"
+            className="absolute top-5 right-5 p-2 bg-white/80 rounded-full border border-black/10 hover:bg-[#C84B31] hover:text-white transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5 text-[#0F3822]" />
+            <X className="w-5 h-5 stroke-[2.5]" />
           </button>
 
           {saved ? (
             <div className="py-10 text-center space-y-3">
-              <div className="w-16 h-16 bg-[#00E676] rounded-full border-3 border-black flex items-center justify-center mx-auto shadow-brutal">
-                <Check className="w-8 h-8 text-[#0F3822] stroke-[3]" />
+              <div className="w-16 h-16 bg-[#2D5D4B] text-white rounded-full border-3 border-white flex items-center justify-center mx-auto shadow-2xl">
+                <Check className="w-8 h-8 stroke-[3]" />
               </div>
-              <h3 className="font-display font-black text-2xl uppercase text-[#0F3822]">
+              <h3 className="font-foudre font-black text-3xl uppercase text-[#C84B31]">
                 HANDLE UPDATED! ✨
               </h3>
-              <p className="text-xs font-sans font-bold text-[#0F3822]/80">
-                You are now signed in as <span className="text-[#FF4D8D]">@{inputHandle}</span>
+              <p className="text-xs font-sans font-bold text-[#2D5D4B]/90">
+                You are now active as <span className="text-[#C84B31]">@{inputHandle}</span>
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               
               <div>
-                <span className="px-3 py-1 bg-[#00E676] text-[#0F3822] font-heading font-black text-xs uppercase rounded-full border border-black inline-block mb-2">
-                  TOKENLESS AUTH SESSION
+                <span className="px-3 py-1 bg-[#C84B31] text-white font-sans font-black text-[10px] uppercase rounded-full inline-block mb-2 shadow-sm">
+                  1-CLICK SQUAD SESSION
                 </span>
-                <h3 className="font-display font-black text-3xl uppercase tracking-tight text-[#0F3822]">
-                  YOUR SOCIAL HANDLE
+                <h3 className="font-foudre font-black text-3xl uppercase tracking-tight text-[#C84B31]">
+                  YOUR PING HANDLE
                 </h3>
-                <p className="text-xs font-sans text-[#0F3822]/70">
-                  No passwords required. Choose your handle & avatar to cast real-time votes.
+                <p className="text-xs font-sans text-[#2D5D4B]/80 font-medium">
+                  Choose your active handle & squad avatar to cast live venue votes & chat.
                 </p>
               </div>
 
               {/* Avatar Selector */}
               <div>
-                <label className="block text-xs font-heading font-extrabold uppercase text-[#0F3822] mb-2">
-                  Select Profile Avatar
+                <label className="block text-xs font-sans font-extrabold uppercase text-[#2D5D4B] mb-2">
+                  Select Squad Avatar
                 </label>
                 <div className="flex items-center gap-3">
                   {AVATAR_OPTIONS.map((imgUrl, idx) => (
@@ -98,10 +99,10 @@ export const AuthModal: React.FC = () => {
                       src={imgUrl}
                       alt="Avatar option"
                       onClick={() => setSelectedAvatar(imgUrl)}
-                      className={`w-14 h-14 rounded-2xl object-cover cursor-pointer border-3 transition-transform ${
+                      className={`w-14 h-14 rounded-2xl object-cover cursor-pointer border-4 transition-transform ${
                         selectedAvatar === imgUrl
-                          ? 'border-[#00E676] scale-110 shadow-brutal-pulse'
-                          : 'border-[#0F3822] opacity-60 hover:opacity-100'
+                          ? 'border-[#C84B31] scale-110 shadow-xl'
+                          : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                     />
                   ))}
@@ -110,18 +111,18 @@ export const AuthModal: React.FC = () => {
 
               {/* Input Handle */}
               <div>
-                <label className="block text-xs font-heading font-extrabold uppercase text-[#0F3822] mb-2">
+                <label className="block text-xs font-sans font-extrabold uppercase text-[#2D5D4B] mb-2">
                   Handle Name
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-3.5 font-heading font-extrabold text-[#FF4D8D]">@</span>
+                  <span className="absolute left-4 top-3.5 font-sans font-extrabold text-[#C84B31]">@</span>
                   <input
                     type="text"
                     required
                     value={inputHandle}
                     onChange={(e) => setInputHandle(e.target.value.replace('@', ''))}
                     placeholder="alex_vibe"
-                    className="w-full pl-9 pr-4 py-3 bg-white text-[#0F3822] font-sans font-bold border-3 border-[#0F3822] rounded-2xl shadow-brutal focus:outline-none focus:ring-2 focus:ring-[#00E676]"
+                    className="w-full pl-9 pr-4 py-3 bg-white text-[#2D5D4B] font-sans font-bold border-2 border-[#2D5D4B]/20 rounded-2xl shadow-sm focus:outline-none focus:border-[#C84B31] transition-colors"
                   />
                 </div>
               </div>
@@ -130,10 +131,10 @@ export const AuthModal: React.FC = () => {
                 type="submit"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full py-4 bg-[#00E676] text-[#0F3822] font-display font-black text-lg border-3 border-[#0F3822] rounded-2xl shadow-brutal hover:bg-[#00E676]/90 cursor-pointer flex items-center justify-center gap-2 uppercase"
+                className="w-full py-4 bg-[#2D5D4B] text-white font-sans font-extrabold text-sm rounded-2xl shadow-xl hover:bg-[#2D5D4B]/90 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider border-2 border-white/20"
               >
                 <UserCheck className="w-5 h-5" />
-                Save Session & Continue
+                <span>Save Profile & Continue</span>
               </motion.button>
 
             </form>
@@ -141,6 +142,7 @@ export const AuthModal: React.FC = () => {
 
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

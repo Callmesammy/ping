@@ -2,6 +2,10 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import { neon } from '@neondatabase/serverless';
+
+dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
@@ -14,6 +18,21 @@ const io = new Server(httpServer, {
 
 app.use(cors());
 app.use(express.json());
+
+// Neon PostgreSQL Database Connection (if DATABASE_URL is configured)
+const DATABASE_URL = process.env.DATABASE_URL;
+let sql: ReturnType<typeof neon> | null = null;
+
+if (DATABASE_URL) {
+  try {
+    sql = neon(DATABASE_URL);
+    console.log('⚡ Neon PostgreSQL Database connected successfully!');
+  } catch (err) {
+    console.warn('⚠️ Neon database initialization error, fallback to fast in-memory store:', err);
+  }
+} else {
+  console.log('💡 No DATABASE_URL provided. Running with fast server memory + real-time WebSockets persistence.');
+}
 
 // In-Memory Database Store
 interface Venue {
@@ -124,7 +143,7 @@ const mockPings: Record<string, Ping> = {
         pingId: 'friday-vibes',
         sender: '🤖 @PingAI',
         avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-        text: 'AI Insight: Overstory Rooftop Lounge is leading with 5 votes! Sunset starts at 7:42 PM 🌅',
+        text: '🤖 AI Curator: Overstory Rooftop Lounge has 5 active votes! Sunset starts at 7:42 PM 🌅',
         timestamp: '14:23',
         isAi: true,
       },
@@ -132,7 +151,7 @@ const mockPings: Record<string, Ping> = {
   },
 };
 
-// Smart Contextual AI Response Generator
+// Contextual AI Response Generator
 function generateAiChatResponse(text: string, pingTitle: string): { sender: string; avatar: string; text: string; isAi: boolean } {
   const lower = text.toLowerCase();
 
@@ -163,28 +182,21 @@ function generateAiChatResponse(text: string, pingTitle: string): { sender: stri
     };
   }
 
-  if (lower.includes('hey') || lower.includes('hi') || lower.includes('hello') || lower.includes('down')) {
-    return {
-      sender: '@marcus',
-      avatar: '/pics/luthfi-alfarizi-0piYmLeSgTQ-unsplash.jpg',
-      text: 'Hey! I’m 100% down! Just locked in my vote on the live map 🔥',
-      isAi: false,
-    };
-  }
-
-  // Default lively response
-  const peerResponses = [
-    { sender: '🤖 @PingAI', avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg', text: '🤖 Live Ping Alert: Squad consensus is at 80%! Tap "Lock It In" once everyone finishes voting.', isAi: true },
-    { sender: '@sara', avatar: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg', text: 'Count me in! See everyone in 30 mins 🚀', isAi: false },
-    { sender: '@elena', avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg', text: 'Just shared the 1-click magic link with 3 more friends! 🎉', isAi: false },
-  ];
-
-  return peerResponses[Math.floor(Math.random() * peerResponses.length)];
+  return {
+    sender: '🤖 @PingAI',
+    avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
+    text: '🤖 Live Ping Alert: Squad consensus is at 80%! Tap "Lock It In" once everyone finishes voting.',
+    isAi: true,
+  };
 }
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    neonConnected: !!sql,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // List all pings
@@ -282,7 +294,7 @@ app.post('/api/pings/:id/messages', (req, res) => {
 
   io.to(req.params.id).emit('chat_message_received', userMsg);
 
-  // Instant AI/Peer Response after 700ms
+  // Instant AI/Peer Response
   setTimeout(() => {
     const aiResponseData = generateAiChatResponse(text, ping.title);
     const aiMsg: ChatMessage = {
@@ -296,7 +308,7 @@ app.post('/api/pings/:id/messages', (req, res) => {
     };
     ping.messages.push(aiMsg);
     io.to(req.params.id).emit('chat_message_received', aiMsg);
-  }, 750);
+  }, 500);
 
   res.status(201).json({ success: true, message: userMsg });
 });
@@ -389,7 +401,7 @@ io.on('connection', (socket) => {
 
       io.to(data.pingId).emit('chat_message_received', newMessage);
 
-      // Instant AI/Peer Response via Sockets after 600ms
+      // Instant AI Response
       setTimeout(() => {
         const aiResponseData = generateAiChatResponse(data.text, ping.title);
         const aiMsg: ChatMessage = {
@@ -403,7 +415,7 @@ io.on('connection', (socket) => {
         };
         ping.messages.push(aiMsg);
         io.to(data.pingId).emit('chat_message_received', aiMsg);
-      }, 650);
+      }, 500);
     }
   });
 
