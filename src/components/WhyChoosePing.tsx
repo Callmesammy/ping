@@ -50,39 +50,52 @@ export const WhyChoosePing: React.FC = () => {
 
       const cards = [card1Ref.current, card2Ref.current, card3Ref.current, card4Ref.current];
 
-      gsap.set(cards, {
-        transformPerspective: 1200,
-        transformOrigin: 'center bottom',
-      });
-
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
           pin: true,
-          scrub: 1,
+          scrub: 0.8,
           start: 'top top',
-          end: '+=3200',
+          end: '+=3400',
           invalidateOnRefresh: true,
         },
       });
 
-      cards.forEach((card, idx) => {
-        if (card) {
-          tl.fromTo(
-            card,
-            { y: 550, rotateX: 65, opacity: 0, scale: 0.85 },
-            {
-              y: 0,
-              rotateX: 0,
-              opacity: 1,
-              scale: 1,
-              duration: 1.2,
-              ease: 'power3.out',
-            },
-            idx === 0 ? '+=0.2' : '+=0.35'
-          );
-        }
-      });
+      // Card 01 flips up & away to reveal Card 02
+      if (card1Ref.current) {
+        tl.to(card1Ref.current, {
+          y: -650,
+          rotate: -14,
+          scale: 0.9,
+          opacity: 0,
+          duration: 1.2,
+          ease: 'power2.inOut',
+        });
+      }
+
+      // Card 02 flips up & away to reveal Card 03
+      if (card2Ref.current) {
+        tl.to(card2Ref.current, {
+          y: -650,
+          rotate: 14,
+          scale: 0.9,
+          opacity: 0,
+          duration: 1.2,
+          ease: 'power2.inOut',
+        }, '+=0.4');
+      }
+
+      // Card 03 flips up & away to reveal Card 04
+      if (card3Ref.current) {
+        tl.to(card3Ref.current, {
+          y: -650,
+          rotate: -10,
+          scale: 0.9,
+          opacity: 0,
+          duration: 1.2,
+          ease: 'power2.inOut',
+        }, '+=0.4');
+      }
 
     }, sectionRef);
 
@@ -101,7 +114,7 @@ export const WhyChoosePing: React.FC = () => {
           WHY SQUADS CHOOSE PING • 4 PILLARS
         </span>
         <span className="text-xs font-sans font-bold uppercase tracking-wider text-white/80 hidden sm:inline-block">
-          Scroll down to flip cards →
+          Scroll down to toss cards →
         </span>
       </div>
 
@@ -114,86 +127,124 @@ export const WhyChoosePing: React.FC = () => {
         </h2>
       </div>
 
-      {/* Mobile Stacked Deck & Desktop Grid Container */}
+      {/* Card Toss Deck Container */}
       <div className="w-full my-auto z-10 max-w-[1500px] mx-auto px-2 sm:px-8">
         
-        {/* Mobile View: Single Centered Stack Deck (01, 02, 03, 04) */}
-        <div className="block sm:hidden relative w-[285px] h-[385px] mx-auto my-auto flex justify-center items-center">
-          {WHY_CARDS.map((card, idx) => {
-            const IconComponent = card.icon;
-            const refMap = [card1Ref, card2Ref, card3Ref, card4Ref];
-            const zIndexes = ['z-10', 'z-20', 'z-30', 'z-40'];
+        {/* Mobile / Tablet / Desktop Unified Card Stack Deck */}
+        <div className="relative w-[285px] sm:w-[340px] h-[385px] sm:h-[480px] mx-auto my-auto flex justify-center items-center">
+          
+          {/* Card 04 (Bottom Layer z-10) */}
+          <div
+            ref={card4Ref}
+            className={`absolute inset-0 m-auto w-[280px] sm:w-[340px] h-[375px] sm:h-[480px] ${WHY_CARDS[3].bg} rounded-[36px] p-6 sm:p-7 shadow-2xl flex flex-col justify-between border-4 border-white/30 cursor-pointer z-10`}
+          >
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current">
+              <Smile className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
+            </div>
 
-            return (
-              <div
-                key={card.id}
-                ref={refMap[idx]}
-                className={`absolute inset-0 m-auto w-[280px] h-[375px] ${card.bg} rounded-[36px] p-6 shadow-2xl flex flex-col justify-between border-4 border-white/30 cursor-pointer ${zIndexes[idx]}`}
-              >
-                <div className="w-12 h-12 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current">
-                  <IconComponent className="w-6 h-6 stroke-[2.5]" />
-                </div>
+            <div className="space-y-2 sm:space-y-3 my-auto">
+              <h3 className="font-foudre font-black text-2xl sm:text-4xl uppercase leading-[0.88] tracking-tight">
+                {WHY_CARDS[3].title}
+              </h3>
+              <p className="text-[11px] sm:text-xs font-sans font-medium leading-relaxed opacity-95">
+                {WHY_CARDS[3].description}
+              </p>
+            </div>
 
-                <div className="space-y-2 my-auto">
-                  <h3 className="font-foudre font-black text-2xl uppercase leading-[0.88] tracking-tight">
-                    {card.title}
-                  </h3>
+            <div className="pt-2 sm:pt-3 flex items-center justify-between border-t border-current/20">
+              <span className="font-mono font-black text-xs sm:text-sm opacity-90">
+                04 / 04
+              </span>
+              <span className="text-[10px] font-sans font-black uppercase tracking-widest">
+                PING SPEED
+              </span>
+            </div>
+          </div>
 
-                  <p className="text-[11px] font-sans font-medium leading-relaxed opacity-95">
-                    {card.description}
-                  </p>
-                </div>
+          {/* Card 03 (Layer z-20) */}
+          <div
+            ref={card3Ref}
+            className={`absolute inset-0 m-auto w-[280px] sm:w-[340px] h-[375px] sm:h-[480px] ${WHY_CARDS[2].bg} rounded-[36px] p-6 sm:p-7 shadow-2xl flex flex-col justify-between border-4 border-white/30 cursor-pointer z-20`}
+          >
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current">
+              <Zap className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
+            </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-current/20">
-                  <span className="font-mono font-black text-xs opacity-90">
-                    {card.id} / 04
-                  </span>
-                  <span className="text-[10px] font-sans font-black uppercase tracking-widest">
-                    PING SPEED
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+            <div className="space-y-2 sm:space-y-3 my-auto">
+              <h3 className="font-foudre font-black text-2xl sm:text-4xl uppercase leading-[0.88] tracking-tight">
+                {WHY_CARDS[2].title}
+              </h3>
+              <p className="text-[11px] sm:text-xs font-sans font-medium leading-relaxed opacity-95">
+                {WHY_CARDS[2].description}
+              </p>
+            </div>
 
-        {/* Desktop / Tablet View Grid */}
-        <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-6 items-center justify-items-center">
-          {WHY_CARDS.map((card, idx) => {
-            const IconComponent = card.icon;
-            const refMap = [card1Ref, card2Ref, card3Ref, card4Ref];
+            <div className="pt-2 sm:pt-3 flex items-center justify-between border-t border-current/20">
+              <span className="font-mono font-black text-xs sm:text-sm opacity-90">
+                03 / 04
+              </span>
+              <span className="text-[10px] font-sans font-black uppercase tracking-widest">
+                PING SPEED
+              </span>
+            </div>
+          </div>
 
-            return (
-              <div
-                key={card.id}
-                ref={refMap[idx]}
-                className={`relative w-full max-w-[340px] h-[480px] ${card.bg} rounded-[36px] p-7 shadow-2xl flex flex-col justify-between border-4 border-white/30 cursor-pointer group`}
-              >
-                <div className="w-14 h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current group-hover:scale-110 transition-transform">
-                  <IconComponent className="w-7 h-7 stroke-[2.5]" />
-                </div>
+          {/* Card 02 (Layer z-30) */}
+          <div
+            ref={card2Ref}
+            className={`absolute inset-0 m-auto w-[280px] sm:w-[340px] h-[375px] sm:h-[480px] ${WHY_CARDS[1].bg} rounded-[36px] p-6 sm:p-7 shadow-2xl flex flex-col justify-between border-4 border-white/30 cursor-pointer z-30`}
+          >
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current">
+              <ThumbsUp className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
+            </div>
 
-                <div className="space-y-3 my-auto">
-                  <h3 className="font-foudre font-black text-4xl uppercase leading-[0.88] tracking-tight">
-                    {card.title}
-                  </h3>
+            <div className="space-y-2 sm:space-y-3 my-auto">
+              <h3 className="font-foudre font-black text-2xl sm:text-4xl uppercase leading-[0.88] tracking-tight">
+                {WHY_CARDS[1].title}
+              </h3>
+              <p className="text-[11px] sm:text-xs font-sans font-medium leading-relaxed opacity-95">
+                {WHY_CARDS[1].description}
+              </p>
+            </div>
 
-                  <p className="text-xs font-sans font-medium leading-relaxed opacity-95">
-                    {card.description}
-                  </p>
-                </div>
+            <div className="pt-2 sm:pt-3 flex items-center justify-between border-t border-current/20">
+              <span className="font-mono font-black text-xs sm:text-sm opacity-90">
+                02 / 04
+              </span>
+              <span className="text-[10px] font-sans font-black uppercase tracking-widest">
+                PING SPEED
+              </span>
+            </div>
+          </div>
 
-                <div className="pt-3 flex items-center justify-between border-t border-current/20">
-                  <span className="font-mono font-black text-sm opacity-90">
-                    {card.id} / 04
-                  </span>
-                  <span className="text-[10px] font-sans font-black uppercase tracking-widest">
-                    PING SPEED
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {/* Card 01 (Top Layer z-40) */}
+          <div
+            ref={card1Ref}
+            className={`absolute inset-0 m-auto w-[280px] sm:w-[340px] h-[375px] sm:h-[480px] ${WHY_CARDS[0].bg} rounded-[36px] p-6 sm:p-7 shadow-2xl flex flex-col justify-between border-4 border-white/30 cursor-pointer z-40`}
+          >
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/10 backdrop-blur-md flex items-center justify-center border border-current">
+              <Laptop className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
+            </div>
+
+            <div className="space-y-2 sm:space-y-3 my-auto">
+              <h3 className="font-foudre font-black text-2xl sm:text-4xl uppercase leading-[0.88] tracking-tight">
+                {WHY_CARDS[0].title}
+              </h3>
+              <p className="text-[11px] sm:text-xs font-sans font-medium leading-relaxed opacity-95">
+                {WHY_CARDS[0].description}
+              </p>
+            </div>
+
+            <div className="pt-2 sm:pt-3 flex items-center justify-between border-t border-current/20">
+              <span className="font-mono font-black text-xs sm:text-sm opacity-90">
+                01 / 04
+              </span>
+              <span className="text-[10px] font-sans font-black uppercase tracking-widest">
+                PING SPEED
+              </span>
+            </div>
+          </div>
+
         </div>
 
       </div>
