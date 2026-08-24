@@ -26,12 +26,12 @@ export async function createPingApi(title: string, tag: string) {
   }
 }
 
-export async function voteVenueApi(pingId: string, venueId: string, userName: string = '@you') {
+export async function voteVenueApi(pingId: string, venueId: string, userName: string = '@you', voteType: 'up' | 'down' = 'up') {
   try {
     const res = await fetch(`${API_BASE}/api/pings/${pingId}/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ venueId, userName }),
+      body: JSON.stringify({ venueId, userName, voteType }),
     });
     if (!res.ok) throw new Error('Failed to submit vote');
     return await res.json();

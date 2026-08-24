@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { AuthProvider } from './context/AuthContext';
 import { Preloader } from './components/Preloader';
@@ -15,6 +15,7 @@ import { Footer } from './components/Footer';
 import { CreatePingModal } from './components/CreatePingModal';
 import { AuthModal } from './components/AuthModal';
 import { InviteModal } from './components/InviteModal';
+import { fetchPing } from './lib/api';
 
 export const App: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -24,6 +25,38 @@ export const App: React.FC = () => {
 
   const [activePingTitle, setActivePingTitle] = useState('FRIDAY NIGHT VIBE CHECK 🍸');
   const [activePingId, setActivePingId] = useState('friday-vibes');
+  const [isSharedLink, setIsSharedLink] = useState(false);
+
+  // Parse 1-Click Magic Link URL parameter (?ping=slug)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedSlug = params.get('ping');
+
+    if (sharedSlug) {
+      setIsSharedLink(true);
+      setActivePingId(sharedSlug);
+      fetchPing(sharedSlug).then((data) => {
+        if (data && data.title) {
+          setActivePingTitle(data.title);
+        }
+      });
+    }
+  }, []);
+
+  const handlePreloaderComplete = () => {
+    const params = new URLSearchParams(window.location.search);
+    const hasPing = params.get('ping');
+    const hasHash = window.location.hash === '#explore';
+
+    if (hasPing || hasHash || isSharedLink) {
+      setTimeout(() => {
+        const target = document.getElementById('explore');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
 
   const handleOpenCreateModal = () => setIsCreateModalOpen(true);
   const handleCloseCreateModal = () => setIsCreateModalOpen(false);
@@ -48,7 +81,7 @@ export const App: React.FC = () => {
         <div className="min-h-screen bg-[#F8F3F0] text-[#0A542E] selection:bg-[#00E676] selection:text-[#0A542E] font-sans relative">
           
           {/* Initial Zoom Preloader Overlay */}
-          <Preloader />
+          <Preloader onComplete={handlePreloaderComplete} />
 
           {/* Fixed Navigation Bar */}
           <Navbar

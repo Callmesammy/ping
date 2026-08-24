@@ -2,16 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap } from 'lucide-react';
 
-export const Preloader: React.FC = () => {
+interface PreloaderProps {
+  onComplete?: () => void;
+}
+
+export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500);
+      if (onComplete) onComplete();
+    }, 2400);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [onComplete]);
 
   return (
     <AnimatePresence>

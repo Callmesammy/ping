@@ -19,7 +19,7 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// Neon PostgreSQL Database Connection (if DATABASE_URL is configured)
+// Neon Database Connection
 const DATABASE_URL = process.env.DATABASE_URL;
 let sql: ReturnType<typeof neon> | null = null;
 
@@ -28,13 +28,10 @@ if (DATABASE_URL) {
     sql = neon(DATABASE_URL);
     console.log('⚡ Neon PostgreSQL Database connected successfully!');
   } catch (err) {
-    console.warn('⚠️ Neon database initialization error, fallback to fast in-memory store:', err);
+    console.warn('⚠️ Neon database connection error:', err);
   }
-} else {
-  console.log('💡 No DATABASE_URL provided. Running with fast server memory + real-time WebSockets persistence.');
 }
 
-// In-Memory Database Store
 interface Venue {
   id: string;
   pingId: string;
@@ -42,7 +39,11 @@ interface Venue {
   category: string;
   address: string;
   votes: number;
+  upvotes: number;
+  downvotes: number;
   votedBy: string[];
+  upvotedBy: string[];
+  downvotedBy: string[];
   imageUrl: string;
   tag: string;
   price: string;
@@ -85,8 +86,12 @@ const mockPings: Record<string, Ping> = {
         name: 'Overstory Rooftop Lounge',
         category: 'Cocktails & Sunset Views',
         address: '152 Pine Street, Downtown',
-        votes: 5,
-        votedBy: ['@alex', '@sara', '@marcus', '@elena', '@jordan'],
+        votes: 8,
+        upvotes: 8,
+        downvotes: 1,
+        votedBy: ['@alex_vibe', '@sara', '@marcus', '@elena', '@jordan', '@sam', '@dave', '@maya', '@lisa'],
+        upvotedBy: ['@alex_vibe', '@sara', '@marcus', '@elena', '@jordan', '@sam', '@dave', '@maya'],
+        downvotedBy: ['@lisa'],
         imageUrl: '/pics/tan-tony-Xek1XGQi-Ps-unsplash.jpg',
         tag: 'LEADER',
         price: '$$$',
@@ -97,8 +102,12 @@ const mockPings: Record<string, Ping> = {
         name: 'Tacos & Mezcal Social',
         category: 'Late Night Tacos & Birria',
         address: '88 Mercado Way',
-        votes: 4,
-        votedBy: ['@sam', '@dave', '@maya', '@lisa'],
+        votes: 6,
+        upvotes: 6,
+        downvotes: 2,
+        votedBy: ['@sam', '@dave', '@maya', '@lisa', '@chloe', '@zack', '@leo', '@elena'],
+        upvotedBy: ['@sam', '@dave', '@maya', '@lisa', '@chloe', '@zack'],
+        downvotedBy: ['@leo', '@elena'],
         imageUrl: '/pics/brands-people-en-u6xqnbsg-unsplash.jpg',
         tag: 'HOT',
         price: '$$',
@@ -109,8 +118,12 @@ const mockPings: Record<string, Ping> = {
         name: 'Neon Arcade & Underground Bar',
         category: 'Pinball, Draft Beer & Retro Gaming',
         address: '404 Cyber Lane',
-        votes: 3,
-        votedBy: ['@leo', '@chloe', '@zack'],
+        votes: 4,
+        upvotes: 4,
+        downvotes: 3,
+        votedBy: ['@leo', '@chloe', '@zack', '@marcus', '@sara', '@dave', '@lisa'],
+        upvotedBy: ['@leo', '@chloe', '@zack', '@marcus'],
+        downvotedBy: ['@sara', '@dave', '@lisa'],
         imageUrl: '/pics/micaela-peduzi-ch4Fc1cGTq4-unsplash.jpg',
         tag: 'VIBES',
         price: '$',
@@ -130,73 +143,31 @@ const mockPings: Record<string, Ping> = {
         text: '7:30 PM slot looks ideal! Let’s meet at Overstory 🍸',
         timestamp: '14:20',
       },
-      {
-        id: 'm2',
-        pingId: 'friday-vibes',
-        sender: '@alex_vibe',
-        avatar: '/pics/luthfi-alfarizi-0piYmLeSgTQ-unsplash.jpg',
-        text: 'Locked in my vote for Overstory Rooftop! 🔥',
-        timestamp: '14:22',
-      },
-      {
-        id: 'm3',
-        pingId: 'friday-vibes',
-        sender: '🤖 @PingAI',
-        avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-        text: '🤖 AI Curator: Overstory Rooftop Lounge has 5 active votes! Sunset starts at 7:42 PM 🌅',
-        timestamp: '14:23',
-        isAi: true,
-      },
     ],
   },
 };
 
-// Contextual AI Response Generator
-function generateAiChatResponse(text: string, pingTitle: string): { sender: string; avatar: string; text: string; isAi: boolean } {
+function generateAiChatResponse(text: string): { sender: string; avatar: string; text: string; isAi: boolean } {
   const lower = text.toLowerCase();
-
-  if (lower.includes('where') || lower.includes('recommend') || lower.includes('rooftop') || lower.includes('spot')) {
+  if (lower.includes('where') || lower.includes('recommend') || lower.includes('rooftop')) {
     return {
       sender: '🤖 @PingAI',
       avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-      text: '🤖 AI Recommendation: Overstory Rooftop Lounge (4.9★) has 5 active votes! High vibe sunset cocktails & live DJ starting 7:30 PM.',
+      text: '🤖 AI Recommendation: Overstory Rooftop Lounge (4.9★) has 8 YES votes! High vibe sunset cocktails starting 7:30 PM.',
       isAi: true,
     };
   }
-
-  if (lower.includes('time') || lower.includes('when') || lower.includes('schedule')) {
-    return {
-      sender: '🤖 @PingAI',
-      avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-      text: '⏰ AI Consensus Alert: 7:30 PM has 4 squad votes. 85% of your squad is free between 7:30 PM and 9:30 PM tonight!',
-      isAi: true,
-    };
-  }
-
-  if (lower.includes('drink') || lower.includes('food') || lower.includes('tacos') || lower.includes('bar')) {
-    return {
-      sender: '@sara',
-      avatar: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
-      text: 'I vote we grab mezcal cocktails and birria tacos right after 🍸🌮!',
-      isAi: false,
-    };
-  }
-
   return {
     sender: '🤖 @PingAI',
     avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-    text: '🤖 Live Ping Alert: Squad consensus is at 80%! Tap "Lock It In" once everyone finishes voting.',
+    text: '🤖 Live Ping Alert: Squad consensus is at 85%! Tap "Lock It In" once voting completes.',
     isAi: true,
   };
 }
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    neonConnected: !!sql,
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ status: 'ok', neonConnected: !!sql, timestamp: new Date().toISOString() });
 });
 
 // List all pings
@@ -207,18 +178,14 @@ app.get('/api/pings', (req, res) => {
 // Get specific ping details
 app.get('/api/pings/:id', (req, res) => {
   const ping = mockPings[req.params.id];
-  if (!ping) {
-    return res.status(404).json({ error: 'Ping not found' });
-  }
+  if (!ping) return res.status(404).json({ error: 'Ping not found' });
   res.json(ping);
 });
 
 // Create a new ping
 app.post('/api/pings', (req, res) => {
   const { title, tag } = req.body;
-  if (!title) {
-    return res.status(400).json({ error: 'Title is required' });
-  }
+  if (!title) return res.status(400).json({ error: 'Title required' });
 
   const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') || `ping-${Date.now()}`;
   
@@ -237,7 +204,11 @@ app.post('/api/pings', (req, res) => {
         category: 'Craft Cocktails & DJ',
         address: '100 Sky High Boulevard',
         votes: 1,
+        upvotes: 1,
+        downvotes: 0,
         votedBy: ['@you'],
+        upvotedBy: ['@you'],
+        downvotedBy: [],
         imageUrl: '/pics/tan-tony-Xek1XGQi-Ps-unsplash.jpg',
         tag: 'NEW',
         price: '$$$',
@@ -249,16 +220,17 @@ app.post('/api/pings', (req, res) => {
         category: 'Street Tacos & Craft Tequila',
         address: '42 Barrio Street',
         votes: 0,
+        upvotes: 0,
+        downvotes: 0,
         votedBy: [],
+        upvotedBy: [],
+        downvotedBy: [],
         imageUrl: '/pics/brands-people-en-u6xqnbsg-unsplash.jpg',
         tag: 'HOT',
         price: '$$',
       },
     ],
-    timeSlots: [
-      { id: 't1', time: '7:30 PM', votes: 1, selected: true },
-      { id: 't2', time: '8:30 PM', votes: 0, selected: false },
-    ],
+    timeSlots: [{ id: 't1', time: '7:30 PM', votes: 1, selected: true }],
     messages: [],
   };
 
@@ -267,79 +239,61 @@ app.post('/api/pings', (req, res) => {
   res.status(201).json(newPing);
 });
 
-// Post a chat message with Instant AI & Peer Trigger
-app.post('/api/pings/:id/messages', (req, res) => {
-  const { sender = '@guest', avatar, text } = req.body;
-  const ping = mockPings[req.params.id];
-
-  if (!ping) {
-    return res.status(404).json({ error: 'Ping not found' });
-  }
-
-  if (!text) {
-    return res.status(400).json({ error: 'Message text is required' });
-  }
-
-  const userMsg: ChatMessage = {
-    id: `m-${Date.now()}`,
-    pingId: req.params.id,
-    sender,
-    avatar: avatar || '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
-    text,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  };
-
-  if (!ping.messages) ping.messages = [];
-  ping.messages.push(userMsg);
-
-  io.to(req.params.id).emit('chat_message_received', userMsg);
-
-  // Instant AI/Peer Response
-  setTimeout(() => {
-    const aiResponseData = generateAiChatResponse(text, ping.title);
-    const aiMsg: ChatMessage = {
-      id: `m-ai-${Date.now()}`,
-      pingId: req.params.id,
-      sender: aiResponseData.sender,
-      avatar: aiResponseData.avatar,
-      text: aiResponseData.text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isAi: aiResponseData.isAi,
-    };
-    ping.messages.push(aiMsg);
-    io.to(req.params.id).emit('chat_message_received', aiMsg);
-  }, 500);
-
-  res.status(201).json({ success: true, message: userMsg });
-});
-
-// Vote for a venue
+// Vote (YES / NO) for a venue
 app.post('/api/pings/:id/vote', (req, res) => {
-  const { venueId, userName = '@guest' } = req.body;
+  const { venueId, userName = '@guest', voteType = 'up' } = req.body;
   const ping = mockPings[req.params.id];
 
-  if (!ping) {
-    return res.status(404).json({ error: 'Ping not found' });
-  }
-
+  if (!ping) return res.status(404).json({ error: 'Ping not found' });
   const venue = ping.venues.find((v) => v.id === venueId);
-  if (!venue) {
-    return res.status(404).json({ error: 'Venue not found' });
-  }
+  if (!venue) return res.status(404).json({ error: 'Venue not found' });
 
-  const hasVoted = venue.votedBy.includes(userName);
+  if (!venue.upvotedBy) venue.upvotedBy = [];
+  if (!venue.downvotedBy) venue.downvotedBy = [];
+  if (!venue.votedBy) venue.votedBy = [];
 
-  if (hasVoted) {
-    venue.votes = Math.max(0, venue.votes - 1);
-    venue.votedBy = venue.votedBy.filter((u) => u !== userName);
+  const hasUpvoted = venue.upvotedBy.includes(userName);
+  const hasDownvoted = venue.downvotedBy.includes(userName);
+
+  if (voteType === 'up') {
+    if (hasUpvoted) {
+      // Toggle off upvote
+      venue.upvotedBy = venue.upvotedBy.filter((u) => u !== userName);
+      venue.upvotes = Math.max(0, venue.upvotes - 1);
+    } else {
+      // Add upvote & remove downvote if present
+      if (hasDownvoted) {
+        venue.downvotedBy = venue.downvotedBy.filter((u) => u !== userName);
+        venue.downvotes = Math.max(0, venue.downvotes - 1);
+      }
+      venue.upvotedBy.push(userName);
+      venue.upvotes += 1;
+    }
   } else {
-    venue.votes += 1;
-    venue.votedBy.push(userName);
+    if (hasDownvoted) {
+      // Toggle off downvote
+      venue.downvotedBy = venue.downvotedBy.filter((u) => u !== userName);
+      venue.downvotes = Math.max(0, venue.downvotes - 1);
+    } else {
+      // Add downvote & remove upvote if present
+      if (hasUpvoted) {
+        venue.upvotedBy = venue.upvotedBy.filter((u) => u !== userName);
+        venue.upvotes = Math.max(0, venue.upvotes - 1);
+      }
+      venue.downvotedBy.push(userName);
+      venue.downvotes += 1;
+    }
   }
 
-  const sortedVenues = [...ping.venues].sort((a, b) => b.votes - a.votes);
+  // Combine unique voters
+  const allVoters = Array.from(new Set([...venue.upvotedBy, ...venue.downvotedBy]));
+  venue.votedBy = allVoters;
+  venue.votes = venue.upvotes;
+
+  // Recalculate Leader Tag
+  const sortedVenues = [...ping.venues].sort((a, b) => b.upvotes - a.upvotes);
   ping.venues.forEach((v) => {
-    if (v.id === sortedVenues[0].id && v.votes > 0) {
+    if (v.id === sortedVenues[0].id && v.upvotes > 0) {
       v.tag = 'LEADER';
     } else if (v.tag === 'LEADER') {
       v.tag = 'HOT';
@@ -349,7 +303,7 @@ app.post('/api/pings/:id/vote', (req, res) => {
   io.to(req.params.id).emit('vote_updated', {
     pingId: req.params.id,
     venueId,
-    newVotes: venue.votes,
+    newVotes: venue.upvotes,
     votedBy: venue.votedBy,
     venues: ping.venues,
   });
@@ -357,32 +311,10 @@ app.post('/api/pings/:id/vote', (req, res) => {
   res.json({ success: true, venue, ping });
 });
 
-// Lock in a Ping
-app.post('/api/pings/:id/lock', (req, res) => {
-  const ping = mockPings[req.params.id];
-  if (!ping) {
-    return res.status(404).json({ error: 'Ping not found' });
-  }
-
-  ping.status = 'LOCKED';
-  const winningVenue = [...ping.venues].sort((a, b) => b.votes - a.votes)[0];
-
-  io.to(req.params.id).emit('ping_locked', {
-    pingId: req.params.id,
-    winningVenue,
-    lockedAt: new Date().toISOString(),
-  });
-
-  res.json({ success: true, ping, winningVenue });
-});
-
 // WebSocket Event Handlers
 io.on('connection', (socket) => {
-  console.log(`⚡ Client connected: ${socket.id}`);
-
   socket.on('join_room', (pingId: string) => {
     socket.join(pingId);
-    console.log(`📌 Socket ${socket.id} joined ping room: ${pingId}`);
   });
 
   socket.on('send_message', (data: { pingId: string; sender: string; avatar: string; text: string }) => {
@@ -401,9 +333,8 @@ io.on('connection', (socket) => {
 
       io.to(data.pingId).emit('chat_message_received', newMessage);
 
-      // Instant AI Response
       setTimeout(() => {
-        const aiResponseData = generateAiChatResponse(data.text, ping.title);
+        const aiResponseData = generateAiChatResponse(data.text);
         const aiMsg: ChatMessage = {
           id: `m-ai-${Date.now()}`,
           pingId: data.pingId,
@@ -417,10 +348,6 @@ io.on('connection', (socket) => {
         io.to(data.pingId).emit('chat_message_received', aiMsg);
       }, 500);
     }
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
 

@@ -9,7 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Neon Database Connection
 const DATABASE_URL = process.env.DATABASE_URL;
 let sql: ReturnType<typeof neon> | null = null;
 
@@ -28,7 +27,11 @@ interface Venue {
   category: string;
   address: string;
   votes: number;
+  upvotes: number;
+  downvotes: number;
   votedBy: string[];
+  upvotedBy: string[];
+  downvotedBy: string[];
   imageUrl: string;
   tag: string;
   price: string;
@@ -71,8 +74,12 @@ const mockPings: Record<string, Ping> = {
         name: 'Overstory Rooftop Lounge',
         category: 'Cocktails & Sunset Views',
         address: '152 Pine Street, Downtown',
-        votes: 5,
-        votedBy: ['@alex', '@sara', '@marcus', '@elena', '@jordan'],
+        votes: 8,
+        upvotes: 8,
+        downvotes: 1,
+        votedBy: ['@alex_vibe', '@sara', '@marcus', '@elena', '@jordan', '@sam', '@dave', '@maya', '@lisa'],
+        upvotedBy: ['@alex_vibe', '@sara', '@marcus', '@elena', '@jordan', '@sam', '@dave', '@maya'],
+        downvotedBy: ['@lisa'],
         imageUrl: '/pics/tan-tony-Xek1XGQi-Ps-unsplash.jpg',
         tag: 'LEADER',
         price: '$$$',
@@ -83,8 +90,12 @@ const mockPings: Record<string, Ping> = {
         name: 'Tacos & Mezcal Social',
         category: 'Late Night Tacos & Birria',
         address: '88 Mercado Way',
-        votes: 4,
-        votedBy: ['@sam', '@dave', '@maya', '@lisa'],
+        votes: 6,
+        upvotes: 6,
+        downvotes: 2,
+        votedBy: ['@sam', '@dave', '@maya', '@lisa', '@chloe', '@zack', '@leo', '@elena'],
+        upvotedBy: ['@sam', '@dave', '@maya', '@lisa', '@chloe', '@zack'],
+        downvotedBy: ['@leo', '@elena'],
         imageUrl: '/pics/brands-people-en-u6xqnbsg-unsplash.jpg',
         tag: 'HOT',
         price: '$$',
@@ -94,53 +105,9 @@ const mockPings: Record<string, Ping> = {
       { id: 't1', time: '7:30 PM', votes: 4, selected: true },
       { id: 't2', time: '8:15 PM', votes: 2, selected: false },
     ],
-    messages: [
-      {
-        id: 'm1',
-        pingId: 'friday-vibes',
-        sender: '@sara',
-        avatar: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
-        text: '7:30 PM slot looks ideal! Let’s meet at Overstory 🍸',
-        timestamp: '14:20',
-      },
-      {
-        id: 'm2',
-        pingId: 'friday-vibes',
-        sender: '🤖 @PingAI',
-        avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-        text: '🤖 AI Curator: Overstory Rooftop Lounge has 5 active votes! Sunset starts at 7:42 PM 🌅',
-        timestamp: '14:23',
-        isAi: true,
-      },
-    ],
+    messages: [],
   },
 };
-
-function generateAiChatResponse(text: string): { sender: string; avatar: string; text: string; isAi: boolean } {
-  const lower = text.toLowerCase();
-  if (lower.includes('where') || lower.includes('recommend') || lower.includes('rooftop')) {
-    return {
-      sender: '🤖 @PingAI',
-      avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-      text: '🤖 AI Recommendation: Overstory Rooftop Lounge (4.9★) has 5 active votes! High vibe sunset cocktails starting 7:30 PM.',
-      isAi: true,
-    };
-  }
-  if (lower.includes('time') || lower.includes('when')) {
-    return {
-      sender: '🤖 @PingAI',
-      avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-      text: '⏰ AI Consensus Alert: 7:30 PM has 4 squad votes. 85% of your squad is free tonight!',
-      isAi: true,
-    };
-  }
-  return {
-    sender: '🤖 @PingAI',
-    avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
-    text: '🤖 Live Ping Alert: Squad consensus is at 80%! Tap "Lock It In" once voting completes.',
-    isAi: true,
-  };
-}
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', neonConnected: !!sql, timestamp: new Date().toISOString() });
@@ -175,7 +142,11 @@ app.post('/api/pings', (req, res) => {
         category: 'Craft Cocktails & DJ',
         address: '100 Sky High Boulevard',
         votes: 1,
+        upvotes: 1,
+        downvotes: 0,
         votedBy: ['@you'],
+        upvotedBy: ['@you'],
+        downvotedBy: [],
         imageUrl: '/pics/tan-tony-Xek1XGQi-Ps-unsplash.jpg',
         tag: 'NEW',
         price: '$$$',
@@ -188,53 +159,47 @@ app.post('/api/pings', (req, res) => {
   res.status(201).json(newPing);
 });
 
-app.post('/api/pings/:id/messages', (req, res) => {
-  const { sender = '@guest', avatar, text } = req.body;
-  const ping = mockPings[req.params.id];
-  if (!ping) return res.status(404).json({ error: 'Ping not found' });
-
-  const userMsg: ChatMessage = {
-    id: `m-${Date.now()}`,
-    pingId: req.params.id,
-    sender,
-    avatar: avatar || '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
-    text,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  };
-
-  if (!ping.messages) ping.messages = [];
-  ping.messages.push(userMsg);
-
-  const aiResp = generateAiChatResponse(text);
-  const aiMsg: ChatMessage = {
-    id: `m-ai-${Date.now()}`,
-    pingId: req.params.id,
-    sender: aiResp.sender,
-    avatar: aiResp.avatar,
-    text: aiResp.text,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    isAi: aiResp.isAi,
-  };
-  ping.messages.push(aiMsg);
-
-  res.status(201).json({ success: true, message: userMsg, aiReply: aiMsg });
-});
-
 app.post('/api/pings/:id/vote', (req, res) => {
-  const { venueId, userName = '@guest' } = req.body;
+  const { venueId, userName = '@guest', voteType = 'up' } = req.body;
   const ping = mockPings[req.params.id];
   if (!ping) return res.status(404).json({ error: 'Ping not found' });
   const venue = ping.venues.find((v) => v.id === venueId);
   if (!venue) return res.status(404).json({ error: 'Venue not found' });
 
-  const hasVoted = venue.votedBy.includes(userName);
-  if (hasVoted) {
-    venue.votes = Math.max(0, venue.votes - 1);
-    venue.votedBy = venue.votedBy.filter((u) => u !== userName);
+  if (!venue.upvotedBy) venue.upvotedBy = [];
+  if (!venue.downvotedBy) venue.downvotedBy = [];
+
+  const hasUpvoted = venue.upvotedBy.includes(userName);
+  const hasDownvoted = venue.downvotedBy.includes(userName);
+
+  if (voteType === 'up') {
+    if (hasUpvoted) {
+      venue.upvotedBy = venue.upvotedBy.filter((u) => u !== userName);
+      venue.upvotes = Math.max(0, venue.upvotes - 1);
+    } else {
+      if (hasDownvoted) {
+        venue.downvotedBy = venue.downvotedBy.filter((u) => u !== userName);
+        venue.downvotes = Math.max(0, venue.downvotes - 1);
+      }
+      venue.upvotedBy.push(userName);
+      venue.upvotes += 1;
+    }
   } else {
-    venue.votes += 1;
-    venue.votedBy.push(userName);
+    if (hasDownvoted) {
+      venue.downvotedBy = venue.downvotedBy.filter((u) => u !== userName);
+      venue.downvotes = Math.max(0, venue.downvotes - 1);
+    } else {
+      if (hasUpvoted) {
+        venue.upvotedBy = venue.upvotedBy.filter((u) => u !== userName);
+        venue.upvotes = Math.max(0, venue.upvotes - 1);
+      }
+      venue.downvotedBy.push(userName);
+      venue.downvotes += 1;
+    }
   }
+
+  venue.votedBy = Array.from(new Set([...venue.upvotedBy, ...venue.downvotedBy]));
+  venue.votes = venue.upvotes;
 
   res.json({ success: true, venue, ping });
 });
