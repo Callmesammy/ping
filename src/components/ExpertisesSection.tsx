@@ -135,6 +135,7 @@ export const ExpertisesSection: React.FC = () => {
   return (
     <section
       ref={sectionRef}
+      id="method"
       className="relative w-full h-screen bg-[#F9F1F0] text-[#2D5D4B] py-16 px-4 md:px-12 overflow-hidden flex items-center justify-center transition-colors duration-700 select-none"
     >
       <div className="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10 h-full">

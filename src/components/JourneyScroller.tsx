@@ -196,6 +196,7 @@ export const JourneyScroller: React.FC = () => {
   return (
     <section
       ref={sectionRef}
+      id="flow"
       style={{ backgroundColor: activeColor }}
       className="relative text-white py-12 overflow-hidden h-screen flex flex-col justify-between transition-colors duration-700 select-none"
     >

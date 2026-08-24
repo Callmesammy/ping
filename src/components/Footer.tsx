@@ -8,7 +8,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenQuiz }) => {
   return (
-    <footer className="bg-[#F9F1F0] text-[#2D5D4B] pt-20 pb-8 px-4 sm:px-12 relative overflow-hidden select-none border-t border-[#C84B31]/10">
+    <footer id="contact" className="bg-[#F9F1F0] text-[#2D5D4B] pt-20 pb-8 px-4 sm:px-12 relative overflow-hidden select-none border-t border-[#C84B31]/10">
       <div className="max-w-[1600px] mx-auto w-full space-y-12">
         
         {/* Top Split Section */}

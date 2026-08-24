@@ -41,6 +41,21 @@ export async function voteVenueApi(pingId: string, venueId: string, userName: st
   }
 }
 
+export async function sendChatMessageApi(pingId: string, sender: string, avatar: string, text: string) {
+  try {
+    const res = await fetch(`${API_BASE}/api/pings/${pingId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender, avatar, text }),
+    });
+    if (!res.ok) throw new Error('Failed to send message');
+    return await res.json();
+  } catch (error) {
+    console.warn('API chat fallback:', error);
+    return null;
+  }
+}
+
 export async function lockPingApi(pingId: string) {
   try {
     const res = await fetch(`${API_BASE}/api/pings/${pingId}/lock`, {

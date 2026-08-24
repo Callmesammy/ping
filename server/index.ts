@@ -29,6 +29,15 @@ interface Venue {
   price: string;
 }
 
+interface ChatMessage {
+  id: string;
+  pingId: string;
+  sender: string;
+  avatar: string;
+  text: string;
+  timestamp: string;
+}
+
 interface Ping {
   id: string;
   title: string;
@@ -38,6 +47,7 @@ interface Ping {
   createdAt: string;
   venues: Venue[];
   timeSlots: { id: string; time: string; votes: number; selected: boolean }[];
+  messages: ChatMessage[];
 }
 
 const mockPings: Record<string, Ping> = {
@@ -90,6 +100,24 @@ const mockPings: Record<string, Ping> = {
       { id: 't1', time: '7:30 PM', votes: 4, selected: true },
       { id: 't2', time: '8:15 PM', votes: 2, selected: false },
       { id: 't3', time: '9:00 PM (Late)', votes: 1, selected: false },
+    ],
+    messages: [
+      {
+        id: 'm1',
+        pingId: 'friday-vibes',
+        sender: '@sara',
+        avatar: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
+        text: '7:30 PM slot looks ideal! Let’s meet at Overstory 🍸',
+        timestamp: '14:20',
+      },
+      {
+        id: 'm2',
+        pingId: 'friday-vibes',
+        sender: '@alex_vibe',
+        avatar: '/pics/luthfi-alfarizi-0piYmLeSgTQ-unsplash.jpg',
+        text: 'Locked in my vote for Overstory Rooftop! 🔥',
+        timestamp: '14:22',
+      },
     ],
   },
 };
@@ -159,6 +187,7 @@ app.post('/api/pings', (req, res) => {
       { id: 't1', time: '7:30 PM', votes: 1, selected: true },
       { id: 't2', time: '8:30 PM', votes: 0, selected: false },
     ],
+    messages: [],
   };
 
   mockPings[id] = newPing;
@@ -167,6 +196,37 @@ app.post('/api/pings', (req, res) => {
   io.emit('ping_created', newPing);
 
   res.status(201).json(newPing);
+});
+
+// Post a chat message to a room
+app.post('/api/pings/:id/messages', (req, res) => {
+  const { sender = '@guest', avatar, text } = req.body;
+  const ping = mockPings[req.params.id];
+
+  if (!ping) {
+    return res.status(404).json({ error: 'Ping not found' });
+  }
+
+  if (!text) {
+    return res.status(400).json({ error: 'Message text is required' });
+  }
+
+  const newMessage: ChatMessage = {
+    id: `m-${Date.now()}`,
+    pingId: req.params.id,
+    sender,
+    avatar: avatar || '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
+    text,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  };
+
+  if (!ping.messages) ping.messages = [];
+  ping.messages.push(newMessage);
+
+  // Broadcast real-time message to socket room
+  io.to(req.params.id).emit('chat_message_received', newMessage);
+
+  res.status(201).json({ success: true, message: newMessage });
 });
 
 // Vote for a venue
@@ -242,6 +302,24 @@ io.on('connection', (socket) => {
   socket.on('join_room', (pingId: string) => {
     socket.join(pingId);
     console.log(`📌 Socket ${socket.id} joined ping room: ${pingId}`);
+  });
+
+  socket.on('send_message', (data: { pingId: string; sender: string; avatar: string; text: string }) => {
+    const ping = mockPings[data.pingId];
+    if (ping) {
+      const newMessage: ChatMessage = {
+        id: `m-${Date.now()}`,
+        pingId: data.pingId,
+        sender: data.sender,
+        avatar: data.avatar || '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
+        text: data.text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      if (!ping.messages) ping.messages = [];
+      ping.messages.push(newMessage);
+
+      io.to(data.pingId).emit('chat_message_received', newMessage);
+    }
   });
 
   socket.on('disconnect', () => {

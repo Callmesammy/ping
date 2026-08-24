@@ -37,7 +37,7 @@ export const FaqSection: React.FC = () => {
   };
 
   return (
-    <section className="relative w-full bg-[#F9F1F0] text-[#2D5D4B] py-24 px-4 md:px-12 overflow-hidden select-none border-t border-[#C84B31]/10">
+    <section id="faq" className="relative w-full bg-[#F9F1F0] text-[#2D5D4B] py-24 px-4 md:px-12 overflow-hidden select-none border-t border-[#C84B31]/10">
       <div className="max-w-[1500px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-start z-10">
         
         {/* Left Column: Headline & Emoji Bubble */}

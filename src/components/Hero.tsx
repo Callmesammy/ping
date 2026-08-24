@@ -157,6 +157,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenCreateModal }) => {
   return (
     <section
       ref={sectionRef}
+      id="hero"
       className="relative w-full h-screen bg-[#F9F1F0] text-[#2D5D4B] pt-14 pb-4 px-4 md:px-10 overflow-hidden flex flex-col justify-between transition-colors duration-700"
     >
       <div className="max-w-[1500px] mx-auto w-full relative z-10 flex-1 flex flex-col justify-between h-full">

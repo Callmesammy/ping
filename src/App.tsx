@@ -3,6 +3,8 @@ import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import { AuthProvider } from './context/AuthContext';
 import { Preloader } from './components/Preloader';
 import { Navbar } from './components/Navbar';
+import { NavigationMenuDrawer } from './components/NavigationMenuDrawer';
+import { LiveChatDrawer } from './components/LiveChatDrawer';
 import { Hero } from './components/Hero';
 import { JourneyScroller } from './components/JourneyScroller';
 import { ExpertisesSection } from './components/ExpertisesSection';
@@ -17,6 +19,9 @@ import { InviteModal } from './components/InviteModal';
 export const App: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   const [activePingTitle, setActivePingTitle] = useState('FRIDAY NIGHT VIBE CHECK 🍸');
   const [activePingId, setActivePingId] = useState('friday-vibes');
 
@@ -40,13 +45,32 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <SmoothScrollProvider>
-        <div className="min-h-screen bg-[#F8F3F0] text-[#0A542E] selection:bg-[#00E676] selection:text-[#0A542E] font-sans">
+        <div className="min-h-screen bg-[#F8F3F0] text-[#0A542E] selection:bg-[#00E676] selection:text-[#0A542E] font-sans relative">
           
           {/* Initial Zoom Preloader Overlay */}
           <Preloader />
 
-          {/* Navigation Overlay */}
-          <Navbar onOpenCreateModal={handleOpenCreateModal} />
+          {/* Fixed Navigation Bar */}
+          <Navbar
+            onOpenCreateModal={handleOpenCreateModal}
+            onOpenMenu={() => setIsMenuOpen(true)}
+            onOpenChat={() => setIsChatOpen(true)}
+          />
+
+          {/* Blacksmith Iron Clash Navigation Drawer */}
+          <NavigationMenuDrawer
+            isOpen={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            onOpenCreateModal={handleOpenCreateModal}
+          />
+
+          {/* Live Squad Room Chat Drawer */}
+          <LiveChatDrawer
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            pingTitle={activePingTitle}
+            pingId={activePingId}
+          />
 
           {/* Hero Section with Pinned Card Transitions */}
           <Hero onOpenCreateModal={handleOpenCreateModal} />

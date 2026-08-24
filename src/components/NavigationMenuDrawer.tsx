@@ -1,6 +1,7 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, QrCode, Instagram, Linkedin, Share2, ArrowUpRight, MessageCircle } from 'lucide-react';
+import { X, QrCode, Instagram, Linkedin, Share2, MessageCircle, Zap } from 'lucide-react';
 
 interface NavigationMenuDrawerProps {
   isOpen: boolean;
@@ -9,13 +10,13 @@ interface NavigationMenuDrawerProps {
 }
 
 const MENU_LINKS = [
-  { label: 'HOME', href: '#' },
-  { label: 'EXPLORE PINGS', href: '#explore' },
-  { label: '5-STEP FLOW', href: '#explore' },
-  { label: 'SQUAD METHOD', href: '#explore' },
-  { label: 'WHY PING', href: '#explore' },
-  { label: 'FAQ', href: '#explore' },
-  { label: 'CONTACT', href: '#explore' },
+  { label: 'HOME', targetId: 'hero' },
+  { label: 'EXPLORE PINGS', targetId: 'explore' },
+  { label: '5-STEP FLOW', targetId: 'flow' },
+  { label: 'SQUAD METHOD', targetId: 'method' },
+  { label: 'WHY PING', targetId: 'why-ping' },
+  { label: 'FAQ', targetId: 'faq' },
+  { label: 'CONTACT', targetId: 'contact' },
 ];
 
 export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
@@ -23,86 +24,121 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
   onClose,
   onOpenCreateModal,
 }) => {
-  return (
+  const handleNavClick = (targetId: string) => {
+    onClose();
+    setTimeout(() => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 150);
+  };
+
+  return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9990] overflow-hidden select-none">
-          
-          {/* Blacksmith Anvil Left Slamming Panel (#2D5D4B Sage Emerald) */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
+          className="fixed inset-0 z-[999999] overflow-hidden select-none bg-[#2D5D4B] text-[#F9F1F0] pointer-events-auto flex flex-col justify-between"
+        >
+          {/* Background Center Crew Photo revealed in background */}
+          <div className="absolute inset-0 m-auto flex items-center justify-center z-0 pointer-events-none opacity-30">
+            <div className="w-[340px] sm:w-[480px] h-[85%] rounded-[48px] overflow-hidden border-4 border-[#F9F1F0]/30 shadow-2xl">
+              <img
+                src="/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg"
+                alt="Ping Squad Background"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Left Anvil Slam Panel (#2D5D4B Sage Emerald) */}
           <motion.div
             initial={{ x: '-100%' }}
             animate={{ x: '0%' }}
             exit={{ x: '-100%' }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-0 left-0 w-1/2 h-full bg-[#2D5D4B] z-10 border-r-4 border-[#E89A3C]/40 shadow-2xl"
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-0 left-0 w-1/2 h-full bg-[#2D5D4B] z-10 border-r-2 border-white/10 shadow-2xl"
           />
 
-          {/* Blacksmith Anvil Right Slamming Panel (#1E2A27 Deep Forest) */}
+          {/* Right Anvil Slam Panel (#1E2A27 Deep Forest) */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: '0%' }}
             exit={{ x: '100%' }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-0 right-0 w-1/2 h-full bg-[#1E2A27] z-10 border-l-4 border-[#E89A3C]/40 shadow-2xl"
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-0 right-0 w-1/2 h-full bg-[#1E2A27] z-10 border-l-2 border-white/10 shadow-2xl"
           />
 
-          {/* Center Iron Clash Lightning Divider Animation */}
+          {/* WAY BIGGER PING Brand Emblem in Center Anvil Clash */}
           <motion.div
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: 1, opacity: 1 }}
-            exit={{ scaleY: 0, opacity: 0 }}
-            transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
-            className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 bg-[#C84B31] z-20 hidden md:block opacity-90 shadow-[0_0_40px_#C84B31]"
-          />
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            exit={{ scale: 0, rotate: 180 }}
+            transition={{ duration: 0.55, delay: 0.25, ease: 'backOut' }}
+            className="absolute inset-0 m-auto w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-[#C84B31] text-white z-20 hidden md:flex flex-col items-center justify-center shadow-[0_0_60px_rgba(200,75,49,0.6)] border-4 border-white cursor-pointer hover:scale-110 transition-transform p-4"
+            onClick={onClose}
+          >
+            <span className="font-foudre font-black text-5xl sm:text-6xl text-white uppercase leading-none tracking-tighter drop-shadow-md">
+              PING
+            </span>
+            <div className="w-8 h-8 rounded-full bg-[#2D5D4B] text-[#F9F1F0] flex items-center justify-center mt-1 shadow-inner">
+              <Zap className="w-4 h-4 fill-current" />
+            </div>
+          </motion.div>
 
-          {/* Main Content Overlay Container */}
+          {/* Main Overlay Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
             className="relative z-30 w-full h-full text-[#F9F1F0] p-6 sm:p-12 flex flex-col justify-between overflow-y-auto"
           >
-            {/* Top Bar: Close 'X' Button & Ping Brand Badge */}
+            {/* Top Bar: Close Button & Giant Brand Badge */}
             <div className="w-full flex items-center justify-between">
               <motion.button
+                type="button"
                 onClick={onClose}
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-14 h-14 bg-[#C84B31] text-white rounded-full flex items-center justify-center shadow-2xl cursor-pointer border-2 border-white/40"
+                className="w-14 h-14 bg-[#C84B31] text-white rounded-full flex items-center justify-center shadow-2xl cursor-pointer border-2 border-white/40 z-40"
               >
                 <X className="w-7 h-7 stroke-[3]" />
               </motion.button>
 
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
-                <span className="font-foudre font-black text-2xl text-[#E89A3C] uppercase tracking-wider">
+              <div className="flex items-center gap-3 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                <span className="font-foudre font-black text-3xl text-[#E89A3C] uppercase tracking-wider">
                   PING
                 </span>
-                <span className="text-xs font-sans text-white/80 font-bold uppercase">
+                <span className="text-xs font-sans text-white/80 font-bold uppercase tracking-widest">
                   NAVIGATION
                 </span>
               </div>
             </div>
 
-            {/* Main Split Grid (Matching Screenshot 100%) */}
+            {/* Main Split Grid */}
             <div className="max-w-[1500px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center my-auto py-8">
               
               {/* Left Column: Navigation Links */}
               <div className="lg:col-span-6 space-y-4">
                 <div className="space-y-1 sm:space-y-2">
                   {MENU_LINKS.map((link, idx) => (
-                    <motion.a
+                    <motion.button
                       key={link.label}
-                      href={link.href}
-                      onClick={onClose}
+                      type="button"
+                      onClick={() => handleNavClick(link.targetId)}
                       initial={{ opacity: 0, x: -30 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + idx * 0.05 }}
+                      transition={{ delay: 0.2 + idx * 0.04 }}
                       whileHover={{ x: 16, color: '#E89A3C' }}
-                      className="font-foudre font-black text-4xl sm:text-6xl md:text-7xl text-[#F9F1F0] uppercase tracking-tight block transition-colors leading-[0.88] cursor-pointer"
+                      className="font-foudre font-black text-4xl sm:text-6xl md:text-7xl text-[#F9F1F0] uppercase tracking-tight block transition-colors leading-[0.88] cursor-pointer text-left focus:outline-none"
                     >
                       {link.label}
-                    </motion.a>
+                    </motion.button>
                   ))}
                 </div>
 
@@ -120,12 +156,12 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Right Column: WhatsApp QR Code Card (Matching Screenshot 100%) */}
+              {/* Right Column: WhatsApp QR Code Card */}
               <div className="lg:col-span-6 flex justify-center lg:justify-end">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 30 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.3 }}
                   className="w-full max-w-md bg-[#2D5D4B] text-white p-8 sm:p-10 rounded-[36px] border-4 border-white/20 shadow-2xl space-y-6 text-center lg:text-left"
                 >
                   {/* QR Code Container */}
@@ -149,6 +185,7 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
                   {/* Action Button */}
                   <div className="pt-2">
                     <motion.button
+                      type="button"
                       onClick={() => {
                         onClose();
                         onOpenCreateModal();
@@ -173,8 +210,9 @@ export const NavigationMenuDrawer: React.FC<NavigationMenuDrawerProps> = ({
             </div>
 
           </motion.div>
-        </div>
+        </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

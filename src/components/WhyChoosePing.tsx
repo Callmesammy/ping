@@ -89,6 +89,7 @@ export const WhyChoosePing: React.FC = () => {
   return (
     <section
       ref={sectionRef}
+      id="why-ping"
       className="relative w-full h-screen bg-[#4A154B] text-white py-16 overflow-hidden flex flex-col justify-between transition-colors select-none"
     >
       {/* Top Banner Tag */}
