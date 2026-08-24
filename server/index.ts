@@ -15,7 +15,7 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// In-Memory Database Store for ultra-fast local state & instant WebSocket sync
+// In-Memory Database Store
 interface Venue {
   id: string;
   pingId: string;
@@ -36,6 +36,7 @@ interface ChatMessage {
   avatar: string;
   text: string;
   timestamp: string;
+  isAi?: boolean;
 }
 
 interface Ping {
@@ -118,9 +119,68 @@ const mockPings: Record<string, Ping> = {
         text: 'Locked in my vote for Overstory Rooftop! 🔥',
         timestamp: '14:22',
       },
+      {
+        id: 'm3',
+        pingId: 'friday-vibes',
+        sender: '🤖 @PingAI',
+        avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
+        text: 'AI Insight: Overstory Rooftop Lounge is leading with 5 votes! Sunset starts at 7:42 PM 🌅',
+        timestamp: '14:23',
+        isAi: true,
+      },
     ],
   },
 };
+
+// Smart Contextual AI Response Generator
+function generateAiChatResponse(text: string, pingTitle: string): { sender: string; avatar: string; text: string; isAi: boolean } {
+  const lower = text.toLowerCase();
+
+  if (lower.includes('where') || lower.includes('recommend') || lower.includes('rooftop') || lower.includes('spot')) {
+    return {
+      sender: '🤖 @PingAI',
+      avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
+      text: '🤖 AI Recommendation: Overstory Rooftop Lounge (4.9★) has 5 active votes! High vibe sunset cocktails & live DJ starting 7:30 PM.',
+      isAi: true,
+    };
+  }
+
+  if (lower.includes('time') || lower.includes('when') || lower.includes('schedule')) {
+    return {
+      sender: '🤖 @PingAI',
+      avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg',
+      text: '⏰ AI Consensus Alert: 7:30 PM has 4 squad votes. 85% of your squad is free between 7:30 PM and 9:30 PM tonight!',
+      isAi: true,
+    };
+  }
+
+  if (lower.includes('drink') || lower.includes('food') || lower.includes('tacos') || lower.includes('bar')) {
+    return {
+      sender: '@sara',
+      avatar: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg',
+      text: 'I vote we grab mezcal cocktails and birria tacos right after 🍸🌮!',
+      isAi: false,
+    };
+  }
+
+  if (lower.includes('hey') || lower.includes('hi') || lower.includes('hello') || lower.includes('down')) {
+    return {
+      sender: '@marcus',
+      avatar: '/pics/luthfi-alfarizi-0piYmLeSgTQ-unsplash.jpg',
+      text: 'Hey! I’m 100% down! Just locked in my vote on the live map 🔥',
+      isAi: false,
+    };
+  }
+
+  // Default lively response
+  const peerResponses = [
+    { sender: '🤖 @PingAI', avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg', text: '🤖 Live Ping Alert: Squad consensus is at 80%! Tap "Lock It In" once everyone finishes voting.', isAi: true },
+    { sender: '@sara', avatar: '/pics/26pigeons-6-W0p0fbrT0-unsplash.jpg', text: 'Count me in! See everyone in 30 mins 🚀', isAi: false },
+    { sender: '@elena', avatar: '/pics/ashe-walker-KfWZ5t3tJNQ-unsplash.jpg', text: 'Just shared the 1-click magic link with 3 more friends! 🎉', isAi: false },
+  ];
+
+  return peerResponses[Math.floor(Math.random() * peerResponses.length)];
+}
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -191,14 +251,11 @@ app.post('/api/pings', (req, res) => {
   };
 
   mockPings[id] = newPing;
-
-  // Broadcast new ping created to all connected clients
   io.emit('ping_created', newPing);
-
   res.status(201).json(newPing);
 });
 
-// Post a chat message to a room
+// Post a chat message with Instant AI & Peer Trigger
 app.post('/api/pings/:id/messages', (req, res) => {
   const { sender = '@guest', avatar, text } = req.body;
   const ping = mockPings[req.params.id];
@@ -211,7 +268,7 @@ app.post('/api/pings/:id/messages', (req, res) => {
     return res.status(400).json({ error: 'Message text is required' });
   }
 
-  const newMessage: ChatMessage = {
+  const userMsg: ChatMessage = {
     id: `m-${Date.now()}`,
     pingId: req.params.id,
     sender,
@@ -221,12 +278,27 @@ app.post('/api/pings/:id/messages', (req, res) => {
   };
 
   if (!ping.messages) ping.messages = [];
-  ping.messages.push(newMessage);
+  ping.messages.push(userMsg);
 
-  // Broadcast real-time message to socket room
-  io.to(req.params.id).emit('chat_message_received', newMessage);
+  io.to(req.params.id).emit('chat_message_received', userMsg);
 
-  res.status(201).json({ success: true, message: newMessage });
+  // Instant AI/Peer Response after 700ms
+  setTimeout(() => {
+    const aiResponseData = generateAiChatResponse(text, ping.title);
+    const aiMsg: ChatMessage = {
+      id: `m-ai-${Date.now()}`,
+      pingId: req.params.id,
+      sender: aiResponseData.sender,
+      avatar: aiResponseData.avatar,
+      text: aiResponseData.text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isAi: aiResponseData.isAi,
+    };
+    ping.messages.push(aiMsg);
+    io.to(req.params.id).emit('chat_message_received', aiMsg);
+  }, 750);
+
+  res.status(201).json({ success: true, message: userMsg });
 });
 
 // Vote for a venue
@@ -253,7 +325,6 @@ app.post('/api/pings/:id/vote', (req, res) => {
     venue.votedBy.push(userName);
   }
 
-  // Update leader tag
   const sortedVenues = [...ping.venues].sort((a, b) => b.votes - a.votes);
   ping.venues.forEach((v) => {
     if (v.id === sortedVenues[0].id && v.votes > 0) {
@@ -263,7 +334,6 @@ app.post('/api/pings/:id/vote', (req, res) => {
     }
   });
 
-  // Broadcast real-time vote update via WebSockets
   io.to(req.params.id).emit('vote_updated', {
     pingId: req.params.id,
     venueId,
@@ -285,7 +355,6 @@ app.post('/api/pings/:id/lock', (req, res) => {
   ping.status = 'LOCKED';
   const winningVenue = [...ping.venues].sort((a, b) => b.votes - a.votes)[0];
 
-  // Broadcast lock-in event to all room members
   io.to(req.params.id).emit('ping_locked', {
     pingId: req.params.id,
     winningVenue,
@@ -295,7 +364,7 @@ app.post('/api/pings/:id/lock', (req, res) => {
   res.json({ success: true, ping, winningVenue });
 });
 
-// WebSocket Server Event Handlers
+// WebSocket Event Handlers
 io.on('connection', (socket) => {
   console.log(`⚡ Client connected: ${socket.id}`);
 
@@ -319,6 +388,22 @@ io.on('connection', (socket) => {
       ping.messages.push(newMessage);
 
       io.to(data.pingId).emit('chat_message_received', newMessage);
+
+      // Instant AI/Peer Response via Sockets after 600ms
+      setTimeout(() => {
+        const aiResponseData = generateAiChatResponse(data.text, ping.title);
+        const aiMsg: ChatMessage = {
+          id: `m-ai-${Date.now()}`,
+          pingId: data.pingId,
+          sender: aiResponseData.sender,
+          avatar: aiResponseData.avatar,
+          text: aiResponseData.text,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isAi: aiResponseData.isAi,
+        };
+        ping.messages.push(aiMsg);
+        io.to(data.pingId).emit('chat_message_received', aiMsg);
+      }, 650);
     }
   });
 
